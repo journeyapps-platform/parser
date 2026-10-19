@@ -1,6 +1,6 @@
 {
   "name": "@ja-platform/parser-type-system",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Journey value types",
   "main": "./dist/index.js",
   "typings": "./dist/@types/index.d.ts",
