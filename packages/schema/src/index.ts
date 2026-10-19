@@ -13,7 +13,8 @@ export * from './types/Relationship';
 
 export * from './types/primitives';
 
-export { ArrayType, QueryType } from '@ja-platform/parser-type-system';
+export { ArrayType } from '@ja-platform/parser-type-system';
+export * from './types/QueryType';
 
 export * from './expressions/SchemaObjectDisplayExpression';
 

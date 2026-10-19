@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
-import { ObjectType, QueryType } from '../src';
+import { ObjectType } from '@ja-platform/parser-type-system';
+import { QueryType } from '../src';
 
 class RecordType extends ObjectType {
   getField() {

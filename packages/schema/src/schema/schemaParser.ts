@@ -1,5 +1,6 @@
 import { SchemaObjectDisplayExpression } from '../expressions/SchemaObjectDisplayExpression';
-import { QueryType, ArrayType } from '@ja-platform/parser-type-system';
+import { ArrayType } from '@ja-platform/parser-type-system';
+import { QueryType } from '../types/QueryType';
 // # schema module
 // Parser for v2 and v3 of the schema XML.
 import { FunctionExpression, FUNCTION_PREFIX } from '@ja-platform/parser-expressions';

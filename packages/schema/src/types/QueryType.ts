@@ -1,5 +1,4 @@
-import { Type } from './Type';
-import { ObjectType } from './ObjectType';
+import { Type, ObjectType } from '@ja-platform/parser-type-system';
 
 /**
  * A query whose results share a value type.

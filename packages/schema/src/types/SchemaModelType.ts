@@ -1,5 +1,5 @@
 import { SchemaObjectDisplayExpression } from '../expressions/SchemaObjectDisplayExpression';
-import { QueryType } from '@ja-platform/parser-type-system';
+import { QueryType } from './QueryType';
 import { ObjectType, Type } from '@ja-platform/parser-type-system';
 import { Variable } from './Variable';
 import { Relationship } from './Relationship';

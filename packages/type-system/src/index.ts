@@ -2,7 +2,6 @@ export * from './Type';
 export * from './Formatter';
 export * from './ObjectType';
 export * from './ArrayType';
-export * from './QueryType';
 export * from './UnknownType';
 export * from './ScalarType';
 export * from './TextType';
