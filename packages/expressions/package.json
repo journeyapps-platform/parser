@@ -3,7 +3,7 @@
   "engines": {
     "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
   },
-  "version": "7.0.5",
+  "version": "7.1.0",
   "description": "JourneyApps Platform expression parsing, representation and reference analysis",
   "main": "./dist/index.js",
   "typings": "./dist/@types/index.d.ts",
