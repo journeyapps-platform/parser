@@ -1,0 +1,17 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/type-system"
+    },
+    {
+      "path": "./packages/expressions"
+    },
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/schema"
+    }
+  ]
+}
