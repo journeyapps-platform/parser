@@ -1,120 +1,125 @@
-import { DayConstructor } from './DayConstructorInterface';
-import { Day as DayInterface } from './DayInterface';
+import { dateFromTime, isPureDate } from './utils';
 
-// Important: Day must be both a type (interface) and value (constructor).
-// This gives the equivalent of having `class Day`.
-export type Day = DayInterface;
+export class Day {
+  private _time: Date;
 
-export const Day: DayConstructor = function (...args: any[]) {
-  var date, dateString, t;
-  if (args.length == 3) {
-    // new Day(year, month, day);
-    // month is 0-11.
-    this._time = new Date(Date.UTC(args[0], args[1], args[2]));
-  } else if (args.length == 1 && args[0] instanceof Date) {
-    // new Day(new Date());
-    // Assume local timezone
-    date = args[0];
-    this._time = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  } else if (args.length == 1 && Day.isDay(args[0])) {
-    // new Day(new Date());
-    this._time = args[0].toDate();
-  } else if (args.length == 1 && typeof args[0] == 'string') {
-    // new Day("2014-02-15")
-    // new Day("2014-02-15T13:15")
-    // new Day("2014-02-15T13:15:11+02")
-    // new Day("2014-02-15T11:15:11Z")
-    dateString = args[0];
-    if (/^\d\d\d\d-\d\d-\d\d/.test(dateString)) {
-      this._time = new Date(dateString.substring(0, 10) + 'T00:00Z');
+  /**
+   * Today in the local timezone.
+   */
+  constructor();
+  /**
+   * Construct from a local Date, another Day, a date string, or a UTC midnight timestamp.
+   * Date strings use their leading YYYY-MM-DD portion without timezone conversion.
+   */
+  constructor(date: Date | Day | string | number);
+  /**
+   * Construct from a year, zero-based month and day of month.
+   */
+  constructor(year: number, month: number, day: number);
+  constructor(...args: [] | [Date | Day | string | number] | [number, number, number]) {
+    if (args.length === 3) {
+      this._time = new Date(Date.UTC(args[0], args[1], args[2]));
+    } else if (args.length === 1 && args[0] instanceof Date) {
+      this._time = dateFromTime(args[0]);
+    } else if (args.length === 1 && Day.isDay(args[0])) {
+      this._time = args[0].toDate();
+    } else if (args.length === 1 && typeof args[0] === 'string') {
+      if (!/^\d\d\d\d-\d\d-\d\d/.test(args[0])) {
+        throw new Error('Invalid date format');
+      }
+      this._time = new Date(args[0].substring(0, 10) + 'T00:00Z');
+    } else if (args.length === 1 && typeof args[0] === 'number') {
+      const date = new Date(args[0]);
+      if (!isPureDate(date)) {
+        throw new Error('Invalid Day');
+      }
+      this._time = date;
+    } else if (args.length === 0) {
+      this._time = dateFromTime(new Date());
     } else {
-      throw new Error('Invalid date format');
+      throw new Error('Invalid args for Day()');
     }
-  } else if (args.length == 1 && typeof args[0] == 'number') {
-    // Assume UTC timestamp.
-    t = new Date(args[0]);
-    if (t.getUTCHours() !== 0 || t.getUTCMinutes() !== 0 || t.getUTCSeconds() !== 0 || t.getUTCMilliseconds() !== 0) {
-      throw new Error('Invalid Day');
-    }
-    this._time = t;
-  } else if (args.length === 0) {
-    // Today in local timezone
-    date = new Date();
-    this._time = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  } else {
-    throw new Error('Invalid args for Day()');
   }
-} as any;
 
-Day.today = function (): DayInterface {
-  return new Day();
-};
-
-Day.fromUTCDate = function (date: Date): DayInterface {
-  return new Day(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-};
-
-Day.isDay = function (obj: any): obj is DayInterface {
-  if (obj == null) {
-    return false;
-  } else if (obj instanceof Day) {
-    return true;
-  } else if (typeof obj == 'object') {
-    // This covers other implementations of the Day class, e.g. in the case
-    // of duplicate imports.
-    return typeof obj.startOfDay == 'function' && typeof obj.endOfDay == 'function';
-  } else {
-    return false;
+  static today(): Day {
+    return new Day();
   }
-};
 
-let DayPrototype = Day.prototype as DayInterface;
+  static fromUTCDate(date: Date): Day {
+    return new Day(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  }
 
-DayPrototype.toDate = function () {
-  // Clone the date, to prevent modifications from affecting us.
-  return new Date(this._time.getTime());
-};
+  /**
+   * Recognize Day objects, including instances from other copies of the package.
+   */
+  static isDay(obj: unknown): obj is Day {
+    return (
+      obj instanceof Day ||
+      (obj !== null &&
+        typeof obj === 'object' &&
+        'startOfDay' in obj &&
+        typeof obj.startOfDay === 'function' &&
+        'endOfDay' in obj &&
+        typeof obj.endOfDay === 'function')
+    );
+  }
 
-DayPrototype.toString = function () {
-  return this._time.toISOString().substring(0, 10);
-};
+  /**
+   * Return a copy of the date at midnight UTC.
+   */
+  toDate(): Date {
+    return new Date(this._time.getTime());
+  }
 
-DayPrototype.toJSON = function () {
-  return this.toString();
-};
+  toString(): string {
+    return this._time.toISOString().substring(0, 10);
+  }
 
-DayPrototype.toISOString = function () {
-  return this.toString();
-};
+  toJSON(): string {
+    return this.toString();
+  }
 
-DayPrototype.valueOf = function () {
-  return this._time.getTime();
-};
+  toISOString(): string {
+    return this.toString();
+  }
 
-DayPrototype.startOfDay = function () {
-  var t = this._time;
-  var d = new Date(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
-  return d;
-};
+  valueOf(): number {
+    return this._time.getTime();
+  }
 
-DayPrototype.endOfDay = function () {
-  var t = this._time;
-  var d = new Date(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate(), 23, 59, 59, 999);
-  return d;
-};
+  /**
+   * Start of the day in the local timezone.
+   */
+  startOfDay(): Date {
+    return new Date(this.getYear(), this.getMonth(), this.getDay());
+  }
 
-DayPrototype.getYear = function () {
-  return this._time.getUTCFullYear();
-};
+  /**
+   * End of the day in the local timezone.
+   */
+  endOfDay(): Date {
+    return new Date(this.getYear(), this.getMonth(), this.getDay(), 23, 59, 59, 999);
+  }
 
-DayPrototype.getMonth = function () {
-  return this._time.getUTCMonth();
-};
+  getYear(): number {
+    return this._time.getUTCFullYear();
+  }
 
-DayPrototype.getDay = function () {
-  return this._time.getUTCDate();
-};
+  /**
+   * Zero-based month, from 0 (January) to 11 (December).
+   */
+  getMonth(): number {
+    return this._time.getUTCMonth();
+  }
 
-DayPrototype.getDayOfWeek = function () {
-  return this._time.getUTCDay();
-};
+  getDay(): number {
+    return this._time.getUTCDate();
+  }
+
+  /**
+   * Day of the week, from 0 (Sunday) to 6 (Saturday).
+   */
+  getDayOfWeek(): number {
+    return this._time.getUTCDay();
+  }
+}

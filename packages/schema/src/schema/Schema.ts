@@ -1,13 +1,8 @@
-import { Version, DEFAULT as DEFAULT_VERSION } from '../Version';
-import { FunctionType, FunctionTypeFactory } from '../types/FunctionType';
 import { Param, ParamFactory } from '../types/Param';
-import * as parser from './schemaParser';
-import { Variable, VariableFactory } from '../types/Variable';
+import { Field, FieldFactory } from '../types/Field';
 import { Relationship, RelationshipTypeFactory } from '../types/Relationship';
 import { SchemaModelType, SchemaModelTypeFactory } from '../types/SchemaModelType';
 import { Type } from '@ja-platform/parser-type-system';
-import { ValidationError } from '@journeyapps/common-xml';
-import { XMLError, XMLElement } from '@journeyapps/domparser/types';
 import { PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives';
 import { PrimitiveTypeFactory, TypeFactory } from './TypeFactory';
 
@@ -21,22 +16,19 @@ export class Schema {
   typeFactories: { [key: string]: TypeFactory } = {};
 
   objects: { [index: string]: SchemaModelType };
-  errors: (ValidationError | XMLError)[];
-
-  sourceElement: XMLElement;
 
   // these are used by the tern defs (legacy editor)
   apiVersion?;
   mobileUserType?;
 
-  // Create a new blank schema. Use schema.loadXml() to load from XML data.
+  /**
+   * Create an empty resolved schema, independently of its input format.
+   */
   constructor() {
     this.objects = {};
-    this.errors = [];
 
-    this.registerTypeFactory(new VariableFactory());
+    this.registerTypeFactory(new FieldFactory());
     this.registerTypeFactory(new ParamFactory());
-    this.registerTypeFactory(new FunctionTypeFactory());
     this.registerTypeFactory(new SchemaModelTypeFactory());
     this.registerTypeFactory(new RelationshipTypeFactory());
 
@@ -55,11 +47,11 @@ export class Schema {
   }
 
   /** Helper function to assist in creating variables */
-  variable<T extends Type = Type>(name?: string, type?: string): Variable<T>;
-  variable<T extends Type = Type>(name?: string, type?: T): Variable<T>;
-  variable<T extends Type = Type>(name?: string, type?: T | string): Variable<T> {
+  field<T extends Type = Type>(name?: string, type?: string): Field<T>;
+  field<T extends Type = Type>(name?: string, type?: T): Field<T>;
+  field<T extends Type = Type>(name?: string, type?: T | string): Field<T> {
     const _type = typeof type === 'string' ? this.getType(type) : type;
-    return this.getFactory(Variable.TYPE).generate<T>({ schema: this, name, type: _type });
+    return this.getFactory(Field.TYPE).generate<T>({ schema: this, name, type: _type });
   }
 
   param<T extends Type = Type>(name?: string, type?: string): Param<T>;
@@ -75,10 +67,6 @@ export class Schema {
 
   newRelationship() {
     return this.getFactory(Relationship.TYPE).generate({ schema: this }) as Relationship;
-  }
-
-  functionType() {
-    return this.getFactory(FunctionType.TYPE).generate({ schema: this }) as FunctionType;
   }
 
   // Given a type name, return the specified type. Returns `undefined` if the type is not found.
@@ -103,29 +91,4 @@ export class Schema {
       return null;
     }
   }
-
-  loadXml(rawxml: string, options: { apiVersion?: Version; recordSource?: boolean } = {}) {
-    const apiVersion = options.apiVersion || DEFAULT_VERSION; // Default to allowing only v2
-    let myParser = parser.parser(this, {
-      version: apiVersion,
-      recordSource: options.recordSource
-    });
-    myParser.parse(rawxml);
-    this.errors = myParser.getErrors();
-    return this;
-  }
-
-  toJSON() {
-    return {
-      objects: this.objects
-    };
-  }
-}
-
-export function parser2(schema: Schema) {
-  return parser.parser(schema, { version: { v3: false } });
-}
-
-export function parser3(schema: Schema) {
-  return parser.parser(schema, { version: { v3: true, v3_1: true } });
 }

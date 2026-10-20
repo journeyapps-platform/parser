@@ -7,9 +7,11 @@ Product parsers and the shared type system for JourneyApps Platform. Engine inte
 | `@ja-platform/parser-type-system` | Runtime type definitions, conversion, validation and formatting contracts |
 | `@ja-platform/parser-expressions` | Expressions, code parsing and reference analysis                          |
 | `@ja-platform/parser-core`        | Nodes, attributes, parsed trees and value providers                       |
-| `@ja-platform/parser-schema`      | JourneyApps Platform schema parsing, schema types and Day date values     |
+| `@ja-platform/parser-schema`      | Resolved schema models, fields, relationships and Day date values         |
+| `@ja-platform/parser-schema-xml`  | XML definitions, parsing, validation and XML source information           |
+| `@ja-platform/parser-schema-json` | Schema JSON serialization and deserialization                             |
 
-Core and schema depend on expressions and type-system; neither depends on the runtime engine. XML infrastructure comes from journeyapps/common. Schema retains its existing parser and compatibility behavior during this move.
+Core and schema depend on expressions and type-system; neither depends on the runtime engine. XML infrastructure comes from journeyapps/common. The XML package returns `XmlSchema`, with XML-aware models and fields that retain their declarations. JSON serialization operates on the base schema graph and excludes XML source information. Use `loadSchemaXml()` from the XML package or `deserializeSchema()` from the JSON package to load a schema.
 
 ## Development
 

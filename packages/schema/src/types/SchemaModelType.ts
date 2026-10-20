@@ -1,10 +1,9 @@
 import { SchemaObjectDisplayExpression } from '../expressions/SchemaObjectDisplayExpression';
 import { QueryType } from './QueryType';
 import { ObjectType, Type } from '@ja-platform/parser-type-system';
-import { Variable } from './Variable';
+import { Field } from './Field';
 import { Relationship } from './Relationship';
 import { Schema } from '../schema/Schema';
-import { XMLElement } from '@journeyapps/domparser/types';
 import { ModelIndex } from '../schema/ModelIndex';
 import { PrimitiveType, TextType } from './primitives';
 import { AbstractObjectTypeFactory, GenerateTypeEvent } from '../schema/TypeFactory';
@@ -21,23 +20,22 @@ export class SchemaModelType extends ObjectType {
 
   readonly isPrimitiveType = false;
   readonly isObject = true;
-  attributes: Record<string, Variable> = {};
+  attributes: Record<string, Field> = {};
 
   static isInstanceOf(type: any): type is SchemaModelType {
     return type?._typeName === SchemaModelType.TYPE;
   }
 
   displayFormat: SchemaObjectDisplayExpression | null;
-  displaySource?: XMLElement;
   label: string;
 
   belongsTo: { [index: string]: Relationship };
   hasMany: { [index: string]: Relationship };
 
-  belongsToVars: { [index: string]: Variable };
-  belongsToIdVars: { [index: string]: Variable };
-  hasManyVars: { [index: string]: Variable };
-  idVar: Variable<TextType>;
+  belongsToVars: { [index: string]: Field };
+  belongsToIdVars: { [index: string]: Field };
+  hasManyVars: { [index: string]: Field };
+  idVar: Field<TextType>;
 
   /**
    * App and Cloud indexes.
@@ -47,11 +45,8 @@ export class SchemaModelType extends ObjectType {
    * App indexes.
    */
   indexes: ModelIndex[];
-  errors: any[]; // TODO
   webhooks: any[]; // TODO
   notifyUsers: NotificationConfig[];
-
-  sourceElement: XMLElement;
 
   constructor(name?: string) {
     super(name);
@@ -64,24 +59,23 @@ export class SchemaModelType extends ObjectType {
     this.hasManyVars = {};
     this.indexes = [];
     this.allIndexes = [];
-    this.errors = [];
     this.webhooks = [];
 
     this.notifyUsers = [];
   }
 
-  addAttribute(attribute: Variable): void {
+  addAttribute(attribute: Field): void {
     this.attributes[attribute.name] = attribute;
   }
 
   setupVariables(schema: Schema) {
-    this.idVar = schema.variable('id', PrimitiveType.TEXT);
+    this.idVar = schema.field('id', PrimitiveType.TEXT);
   }
 
   /**
    * Attribute or relationship variable.
    */
-  getAttribute(name: string): Variable | null {
+  getAttribute(name: string): Field | null {
     if (Object.prototype.hasOwnProperty.call(this.attributes, name)) {
       return this.attributes[name];
     } else if (Object.prototype.hasOwnProperty.call(this.belongsToVars, name)) {
@@ -101,39 +95,13 @@ export class SchemaModelType extends ObjectType {
     return this.getAttribute(name)?.type ?? null;
   }
 
-  getAttributes(): { [index: string]: Variable } {
+  getAttributes(): { [index: string]: Field } {
     return {
       ...this.hasManyVars,
       ...this.belongsToIdVars,
       ...this.belongsToVars,
       ...this.attributes,
       id: this.idVar
-    };
-  }
-
-  toJSON() {
-    let belongsTo: {
-      [index: string]: { type: string; foreignName: string };
-    } = {};
-    // hasMany is not populated yet
-    const hasMany = {};
-
-    for (let key in this.belongsTo) {
-      if (this.belongsTo.hasOwnProperty(key)) {
-        const rel = this.belongsTo[key];
-        belongsTo[rel.name] = {
-          type: rel.foreignType.name,
-          foreignName: rel.foreignName
-        };
-      }
-    }
-
-    return {
-      label: this.label,
-      attributes: this.attributes,
-      belongsTo: belongsTo,
-      hasMany: hasMany,
-      display: this.displayFormat?.raw() ?? ''
     };
   }
 
@@ -166,10 +134,10 @@ export class SchemaModelType extends ObjectType {
         object.belongsTo[name] = rel;
 
         // For type lookups
-        object.belongsToVars[name] = schema.variable(name, rel.foreignType);
+        object.belongsToVars[name] = schema.field(name, rel.foreignType);
         object.belongsToVars[name].relationship = name;
 
-        const idVar = schema.variable(name + '_id', PrimitiveType.TEXT);
+        const idVar = schema.field(name + '_id', PrimitiveType.TEXT);
         idVar.relationship = name;
         idVar.isBelongsToId = true;
         object.belongsToIdVars[idVar.name] = idVar;
@@ -178,7 +146,7 @@ export class SchemaModelType extends ObjectType {
       if (foreignName != null) {
         rel.foreignName = foreignName;
         rel.foreignType.hasMany[foreignName] = rel;
-        rel.foreignType.hasManyVars[foreignName] = schema.variable(foreignName, new QueryType(object));
+        rel.foreignType.hasManyVars[foreignName] = schema.field(foreignName, new QueryType(object));
       }
       return rel;
     }

@@ -1,4 +1,5 @@
 export * from './AbstractExpression';
+export * from './ListExpression';
 
 export * from './EvaluatedExpression';
 

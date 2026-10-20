@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Day } from '../src/day';
+import { Day } from '../src/day/Day';
 import { DateType, SingleChoiceIntegerType, MultipleChoiceIntegerType } from '../src';
 
 it('validates integer choices against declared options and converts enum options', () => {

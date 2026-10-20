@@ -1,5 +1,3 @@
-import { XMLElement } from '@journeyapps/domparser/types';
-
 export class EnumOption {
   /** They key */
   value: string | number | boolean;
@@ -7,8 +5,6 @@ export class EnumOption {
   label: string;
 
   index: number;
-
-  sourceElement: XMLElement;
 
   static isInstanceOf(value: any): value is EnumOption {
     return (

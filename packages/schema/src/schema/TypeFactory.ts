@@ -1,9 +1,8 @@
-import { FunctionType } from '../types/FunctionType';
 import { SchemaModelType } from '../types/SchemaModelType';
 import { Param } from '../types/Param';
 import { PrimitiveTypeInstance, PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives';
 import { Relationship } from '../types/Relationship';
-import { Variable } from '../types/Variable';
+import { Field } from '../types/Field';
 import { Schema } from './Schema';
 
 export interface TypeFactory<NAME extends string = string> {
@@ -15,14 +14,10 @@ export interface GenerateTypeEvent {
   schema: Schema;
 }
 
-export type ObjectTypeInstance = Variable<any> | Param | FunctionType | SchemaModelType | Relationship;
+export type ObjectTypeInstance = Field<any> | Param | SchemaModelType | Relationship;
 
 export type ObjectTypeName =
-  | typeof Param.TYPE
-  | typeof Variable.TYPE
-  | typeof FunctionType.TYPE
-  | typeof SchemaModelType.TYPE
-  | typeof Relationship.TYPE;
+  typeof Param.TYPE | typeof Field.TYPE | typeof SchemaModelType.TYPE | typeof Relationship.TYPE;
 
 export abstract class AbstractObjectTypeFactory<
   R extends ObjectTypeInstance = ObjectTypeInstance,

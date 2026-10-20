@@ -1,31 +1,21 @@
 import { FunctionExpression } from '@ja-platform/parser-expressions';
 import { AbstractObjectTypeFactory } from '../schema/TypeFactory';
 import { Type } from '@ja-platform/parser-type-system';
-import { GenerateVariableEvent, Variable, VariableJsonType } from './Variable';
+import { GenerateFieldEvent, Field } from './Field';
 
-export class Param<T extends Type = Type> extends Variable<T> {
+export class Param<T extends Type = Type> extends Field<T> {
   static TYPE = 'parameter';
 
   static isInstanceOf(obj: any): obj is Param {
     return obj instanceof Param || obj?.TYPE == Param.TYPE;
   }
 
+  sourceTypeName?: string;
   required?: boolean;
   provideValue?: FunctionExpression;
-
-  toJSON(): VariableJsonType {
-    const result = super.toJSON();
-    if (this.required != null) {
-      result.required = this.required;
-    }
-    if (this.provideValue != null) {
-      result.provideValue = this.provideValue.raw();
-    }
-    return result;
-  }
 }
 
-export interface GenerateParamEvent<T extends Type> extends GenerateVariableEvent<T> {
+export interface GenerateParamEvent<T extends Type> extends GenerateFieldEvent<T> {
   required?: boolean;
   provideValue?: FunctionExpression;
 }

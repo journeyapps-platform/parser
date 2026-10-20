@@ -1,4 +1,6 @@
 export * from './AbstractToken';
+export * from './DelimiterToken';
+export * from './EnumToken';
 export * from './text/TextToken';
 export * from './code/JSToken';
 export * from './code/PrefixToken';

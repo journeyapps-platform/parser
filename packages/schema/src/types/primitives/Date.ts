@@ -1,4 +1,5 @@
-import { Day, pureDate } from '../../day';
+import { Day } from '../../day/Day';
+import { pureDate } from '../../day/utils';
 import moment from 'moment';
 import { Type } from '@ja-platform/parser-type-system';
 

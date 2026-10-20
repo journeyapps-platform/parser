@@ -3,12 +3,9 @@ import { webdriverio } from '@vitest/browser-webdriverio';
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['@ja-platform/parser-type-system', '@ja-platform/parser-expressions', '@journeyapps/common-xml']
+    include: ['@ja-platform/parser-type-system', '@ja-platform/parser-expressions']
   },
   test: {
-    alias: {
-      stream: 'stream-browserify'
-    },
     globals: true,
     include: ['./tests/**/*.test.ts'],
     reporters: 'default',

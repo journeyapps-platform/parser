@@ -1,0 +1,37 @@
+{
+  "name": "@ja-platform/parser-schema-json",
+  "engines": {
+    "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
+  },
+  "version": "0.0.0",
+  "description": "JourneyApps Platform schema JSON serialization and deserialization",
+  "main": "./dist/index.js",
+  "typings": "./dist/@types/index.d.ts",
+  "scripts": {
+    "test": "pnpm test:node && pnpm test:browser",
+    "test:browser": "vitest --run --configLoader runner --config vitest.config.browser.ts",
+    "test:node": "vitest --run --configLoader runner --config vitest.config.unit.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@ja-platform/parser-schema": "workspace:^",
+    "@ja-platform/parser-type-system": "workspace:^"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5",
+    "@vitest/browser": "^5.0.5",
+    "@vitest/browser-webdriverio": "^5.0.0",
+    "webdriverio": "^10.1.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/journeyapps-platform/parser.git",
+    "directory": "packages/schema-json"
+  }
+}

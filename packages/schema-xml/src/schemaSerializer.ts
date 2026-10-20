@@ -1,9 +1,9 @@
-import { Schema } from './Schema';
+import { XmlSchema as Schema } from './XmlSchema';
 import { setAttributes, OrderedIncrementalUpdater } from '@journeyapps/common-xml';
 import { XMLElement, XMLDocument } from '@journeyapps/domparser/types';
 import * as xml from '@journeyapps/common-xml';
-import { Variable } from '../types/Variable';
-import { AttachmentType, ChoiceType } from '../types/primitives';
+import { XmlField as Field } from './XmlField';
+import { AttachmentType, ChoiceType } from '@ja-platform/parser-schema';
 
 export function toDOM(schema: Schema): XMLDocument {
   let doc = xml.createDocument('data-model');
@@ -107,7 +107,7 @@ export function toDOM(schema: Schema): XMLDocument {
  *
  * No-op for other fields.
  */
-export function updateOptions(fieldDiff: OrderedIncrementalUpdater, attribute: Variable) {
+export function updateOptions(fieldDiff: OrderedIncrementalUpdater, attribute: Field) {
   if (!ChoiceType.isInstanceOf(attribute.type)) {
     return;
   }
@@ -151,7 +151,7 @@ export function updateOptions(fieldDiff: OrderedIncrementalUpdater, attribute: V
     if (typeof option.value == 'number') {
       lastKey = option.value;
     }
-    fieldDiff.append(option.sourceElement, {
+    fieldDiff.append(attribute.optionSources.get(String(option.value)), {
       tagName: 'option',
       update(element) {
         setAttributes(

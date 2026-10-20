@@ -1,5 +1,10 @@
+import { XmlSchema as Schema } from '../src';
+import { deserializeSchema, serializeSchema } from '@ja-platform/parser-schema-json';
+import { loadSchemaXml } from '../src';
 import { prettyText, parse } from '@journeyapps/common-xml';
-import { Version, jsonParser, Schema, SchemaObjectDisplayExpression, toDOM } from '../src';
+
+import { SchemaObjectDisplayExpression } from '@ja-platform/parser-schema';
+import { toDOM } from '../src';
 import { describe, it, expect } from 'vitest';
 
 // @ts-ignore
@@ -9,11 +14,7 @@ import expectedOutput from './fixtures/schema_modified.xml?raw';
 
 describe('Schema toDOM', () => {
   it('should output a modified schema', () => {
-    const schema = new Schema();
-    schema.loadXml(schema3_xml, {
-      apiVersion: new Version('4.0'),
-      recordSource: true
-    });
+    const schema = loadSchemaXml({ source: schema3_xml });
 
     const originalDoc = parse(schema3_xml);
     const originalPretty = prettyText(originalDoc);
@@ -24,14 +25,14 @@ describe('Schema toDOM', () => {
 
     // JSON must carry the same display source as XML, including its placeholders.
     const restored = new Schema();
-    jsonParser(restored).parse(JSON.parse(JSON.stringify(schema)));
+    deserializeSchema({ schema: restored, data: JSON.parse(JSON.stringify(serializeSchema(schema))) });
     expect(restored.objects.room.displayFormat.raw()).toBe('{barcode} {name} ({building.name})');
 
     // START MODIFICATIONS
 
     // Add fields
-    schema.objects.building.addAttribute(schema.variable('floors', schema.primitive('number')));
-    schema.objects.building.addAttribute(schema.variable('height', schema.primitive('number')));
+    schema.objects.building.addAttribute(schema.field('floors', schema.primitive('number')));
+    schema.objects.building.addAttribute(schema.field('height', schema.primitive('number')));
     schema.objects.building.attributes.height.label = 'Height';
 
     // Delete model
