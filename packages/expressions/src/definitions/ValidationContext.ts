@@ -1,4 +1,4 @@
-import type { ReferencePath } from '../tokens';
+import type { ReferencePath } from '../tokens/code/CodeToken';
 import type { Type } from '@ja-platform/parser-type-system';
 
 /**

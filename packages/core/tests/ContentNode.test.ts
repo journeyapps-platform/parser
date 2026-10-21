@@ -7,10 +7,10 @@ import {
 import { numberType, booleanType, textType } from '@ja-platform/parser-type-system';
 import { expect, expectTypeOf, it } from 'vitest';
 import { parse } from '@journeyapps/common-xml';
-import { V5Node, V5ContentNode, V5ContentTextAttribute, ConstantExpressionValueProvider } from '../src';
+import { Node, ContentNode, ContentTextAttribute, ConstantExpressionValueProvider } from '../src';
 
 it('parses element content using the declared value type and serializes its original text', () => {
-  const definition = new V5ContentNode({ name: 'timeout', valueType: numberType });
+  const definition = new ContentNode({ name: 'timeout', valueType: numberType });
   const element = parse('<timeout content="99">30</timeout>').documentElement;
   const node = definition.parseTree({
     event: {
@@ -26,7 +26,7 @@ it('parses element content using the declared value type and serializes its orig
 });
 
 it('reports invalid typed content at the content element', () => {
-  const definition = new V5ContentNode({ name: 'timeout', valueType: numberType });
+  const definition = new ContentNode({ name: 'timeout', valueType: numberType });
   const element = parse('<timeout>invalid</timeout>').documentElement;
   const node = definition.parseTree({
     event: {
@@ -43,7 +43,7 @@ it('reports invalid typed content at the content element', () => {
 });
 
 it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to literal text for %j', (text) => {
-  const definition = new V5ContentNode({ name: 'label', valueType: textType });
+  const definition = new ContentNode({ name: 'label', valueType: textType });
   const element = parse(`<label>${text}</label>`).documentElement;
   const node = definition.parseTree({
     event: {
@@ -62,8 +62,8 @@ it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to l
 });
 
 it('uses content as the input for prefixed text without rewriting the source', () => {
-  const definition = new V5Node({ name: 'label' });
-  definition.addAttribute(new V5ContentTextAttribute({ name: 'title' }));
+  const definition = new Node({ name: 'label' });
+  definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
   const element = parse('<label>$:getLabel()</label>').documentElement;
   const node = definition.parseTree({
     event: {
@@ -82,7 +82,7 @@ it('uses content as the input for prefixed text without rewriting the source', (
 });
 
 it('parses explicit boolean content', () => {
-  const definition = new V5ContentNode({ name: 'enabled', valueType: booleanType });
+  const definition = new ContentNode({ name: 'enabled', valueType: booleanType });
   const element = parse('<enabled>false</enabled>').documentElement;
   const node = definition.parseTree({
     event: {
@@ -99,7 +99,7 @@ it('parses explicit boolean content', () => {
 });
 
 it('accepts explicitly selected evaluated syntax while retaining its source and resolved value type', () => {
-  const definition = new V5ContentNode({
+  const definition = new ContentNode({
     name: 'timeout',
     valueType: numberType,
     syntax: new EvaluatedExpressionParser()
@@ -120,7 +120,7 @@ it('validates explicitly selected format syntax as element content', () => {
   const element = parse('<label>Hello {name}</label>').documentElement;
   const scope = { getReference: () => null };
   const validations: Array<[unknown, unknown, unknown]> = [];
-  const definition = new V5ContentNode({
+  const definition = new ContentNode({
     name: 'label',
     valueType: textType,
     syntax: new FormatStringExpressionParser()
@@ -146,8 +146,8 @@ it('validates explicitly selected format syntax as element content', () => {
 });
 
 it('uses an explicit content-text attribute before the element content fallback', () => {
-  const definition = new V5Node({ name: 'label' });
-  definition.addAttribute(new V5ContentTextAttribute({ name: 'title' }));
+  const definition = new Node({ name: 'label' });
+  definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
   const node = definition.parseTree({
     event: {
       element: parse('<label title="$:getLabel()">Fallback</label>').documentElement,

@@ -1,4 +1,4 @@
-import { ExpressionSource } from './tokens';
+import { ExpressionSource } from './tokens/AbstractToken';
 import { AbstractExpression } from './expressions/AbstractExpression';
 
 /**

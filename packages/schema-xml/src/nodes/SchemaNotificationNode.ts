@@ -1,4 +1,4 @@
-import { V5Node, V5NodeGenerics, ParsedNodeShape, V5Attribute } from '@ja-platform/parser-core';
+import { Node, NodeGenerics, ParsedNodeShape, Attribute } from '@ja-platform/parser-core';
 import { ConstantExpression } from '@ja-platform/parser-expressions';
 import { SchemaObjectDisplayExpression, SchemaObjectDisplayExpressionParser } from '@ja-platform/parser-schema';
 import { SchemaNameAttribute } from '../attributes/SchemaNameAttribute';
@@ -10,11 +10,11 @@ export interface SchemaNotificationShape extends ParsedNodeShape {
   badgeCount?: ConstantExpression<string>;
 }
 
-export class SchemaNotificationNode extends V5Node<V5NodeGenerics<SchemaNotificationShape>> {
+export class SchemaNotificationNode extends Node<NodeGenerics<SchemaNotificationShape>> {
   constructor() {
     super({ name: 'notify-user', key: 'notifications', isMultiple: true });
     this.addAttribute(
-      new V5Attribute('schema-notification-message', {
+      new Attribute('schema-notification-message', {
         name: 'message',
         required: true,
         syntax: new SchemaObjectDisplayExpressionParser()

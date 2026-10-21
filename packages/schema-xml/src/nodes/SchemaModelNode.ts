@@ -1,10 +1,10 @@
 import {
-  V5Node,
-  V5NodeGenerics,
+  Node,
+  NodeGenerics,
   ParsedNodeShape,
   ParsedNode,
   ParsedArrayNode,
-  V5ConstantTextAttribute,
+  ConstantTextAttribute,
   ParseTreeOptions
 } from '@ja-platform/parser-core';
 import { ConstantExpression } from '@ja-platform/parser-expressions';
@@ -33,11 +33,11 @@ export interface SchemaModelShape extends ParsedNodeShape {
   webhooks: ParsedArrayNode<ParsedNode<SchemaWebhookShape>>;
 }
 
-export class SchemaModelNode extends V5Node<V5NodeGenerics<SchemaModelShape, ParsedSchemaModelNode>> {
+export class SchemaModelNode extends Node<NodeGenerics<SchemaModelShape, ParsedSchemaModelNode>> {
   constructor() {
     super({ name: 'model', key: 'models', isMultiple: true });
     this.addAttribute(new SchemaNameAttribute({ name: 'name', required: true }));
-    this.addAttribute(new V5ConstantTextAttribute({ name: 'label', required: true }));
+    this.addAttribute(new ConstantTextAttribute({ name: 'label', required: true }));
     this.addAttribute(new SchemaEnumAttribute({ name: 'classification', values: ['standard', 'sensitive'] }));
     this.addNode(new SchemaFieldNode());
     this.addNode(new SchemaBelongsToNode());

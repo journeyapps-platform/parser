@@ -1,4 +1,4 @@
-import { AbstractToken } from '../tokens';
+import { AbstractToken } from '../tokens/AbstractToken';
 import type { ValidationContext } from '../definitions/ValidationContext';
 
 export interface ExpressionDiagnostic {

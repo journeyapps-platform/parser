@@ -1,6 +1,6 @@
 import { ExpressionParser } from './ExpressionParser';
 import { AbstractExpression } from './expressions/AbstractExpression';
-import { ExpressionSource } from './tokens';
+import { ExpressionSource } from './tokens/AbstractToken';
 
 /**
  * Try parsers in order and stop at the first matching expression.

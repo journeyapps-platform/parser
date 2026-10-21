@@ -1,17 +1,17 @@
-import { AttachmentType } from './attachments/Attachment';
-import { TextType } from './Text';
-import { BooleanType } from './Boolean';
-import { LocationType } from './Location';
-import { GeoTrackType } from './GeoTrack';
-import { SingleChoiceType } from './SingleChoice';
-import { SingleChoiceIntegerType } from './SingleChoiceInteger';
-import { MultipleChoiceType } from './MultipleChoice';
-import { MultipleChoiceIntegerType } from './MultipleChoiceInteger';
+import { AttachmentType } from './attachments/AttachmentType';
+import { TextType } from './TextType';
+import { BooleanType } from './BooleanType';
+import { LocationType } from './LocationType';
+import { GeoTrackType } from './GeoTrackType';
+import { SingleChoiceType } from './SingleChoiceType';
+import { SingleChoiceIntegerType } from './SingleChoiceIntegerType';
+import { MultipleChoiceType } from './MultipleChoiceType';
+import { MultipleChoiceIntegerType } from './MultipleChoiceIntegerType';
 import { IntegerType, NumberType } from '@ja-platform/parser-type-system';
-import { DateType } from './Date';
-import { DatetimeType } from './Datetime';
-import { PhotoType } from './attachments/Photo';
-import { SignatureType } from './attachments/Signature';
+import { DateType } from './DateType';
+import { DatetimeType } from './DatetimeType';
+import { PhotoType } from './attachments/PhotoType';
+import { SignatureType } from './attachments/SignatureType';
 
 export const PrimitiveType = {
   ATTACHMENT: AttachmentType.TYPE,
@@ -58,21 +58,3 @@ export type PrimitiveTypeMap = typeof PrimitiveTypeMap;
 export type PrimitiveTypeName = keyof typeof PrimitiveTypeMap;
 
 export type PrimitiveTypeInstance = InstanceType<PrimitiveTypeMap[PrimitiveTypeName]>;
-
-export * from './Boolean';
-export * from './Date';
-export * from './Datetime';
-export { IntegerType, NumberType } from '@ja-platform/parser-type-system';
-export * from './Text';
-export * from './Location';
-export * from './GeoTrack';
-
-export * from './ChoiceType';
-export * from './MultipleChoice';
-export * from './MultipleChoiceInteger';
-export * from './SingleChoice';
-export * from './SingleChoiceInteger';
-
-export * from './attachments/Attachment';
-export * from './attachments/Photo';
-export * from './attachments/Signature';

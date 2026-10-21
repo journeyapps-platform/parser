@@ -1,5 +1,5 @@
 import { CombinedParser } from '../../CombinedParser';
-import { ExpressionSource } from '../../tokens';
+import { ExpressionSource } from '../../tokens/AbstractToken';
 import { EvaluatedExpression, EvaluatedExpressionParser } from '../EvaluatedExpression';
 import { FunctionExpressionParser } from '../function/FunctionExpression';
 import { FormatShorthandExpressionParser } from '../shorthand/FormatShorthandExpression';

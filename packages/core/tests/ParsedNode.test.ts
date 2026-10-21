@@ -6,25 +6,25 @@ import {
   ParsedAttribute,
   ParsedArrayNode,
   ParseTreeOptions,
-  V5NodeAlternatives,
-  V5Attribute,
-  V5FunctionAttribute,
-  V5Node,
+  NodeAlternatives,
+  Attribute,
+  FunctionAttribute,
+  Node,
   XMLParseEvent,
   ParsedNode,
-  V5TextAttribute,
-  V5ConstantTextAttribute,
-  V5ConstantBooleanAttribute,
-  V5NumberAttribute,
-  V5BooleanAttribute,
+  TextAttribute,
+  ConstantTextAttribute,
+  ConstantBooleanAttribute,
+  NumberAttribute,
+  BooleanAttribute,
   ParserDefaultValueProvider,
   ConstantExpressionValueProvider
 } from '../src';
-class AlternativeItemsParser extends V5Node {
+class AlternativeItemsParser extends Node {
   constructor() {
     super({ name: 'items', key: 'items' });
     this.addNode(
-      new V5NodeAlternatives({
+      new NodeAlternatives({
         key: 'items',
         alternatives: [new StaticItemParser(), new QueryItemParser()]
       })
@@ -32,10 +32,10 @@ class AlternativeItemsParser extends V5Node {
   }
 }
 
-class StaticItemParser extends V5Node {
+class StaticItemParser extends Node {
   constructor() {
     super({ name: 'item', key: 'items', isMultiple: true });
-    this.addAttribute(new V5TextAttribute({ name: 'label' }));
+    this.addAttribute(new TextAttribute({ name: 'label' }));
   }
 
   protected shouldParse(options: ParseTreeOptions): boolean {
@@ -43,10 +43,10 @@ class StaticItemParser extends V5Node {
   }
 }
 
-class QueryItemParser extends V5Node {
+class QueryItemParser extends Node {
   constructor() {
     super({ name: 'item', key: 'items', isMultiple: true });
-    this.addAttribute(new V5TextAttribute({ name: 'query' }));
+    this.addAttribute(new TextAttribute({ name: 'query' }));
   }
 
   protected shouldParse(options: ParseTreeOptions): boolean {
@@ -54,26 +54,26 @@ class QueryItemParser extends V5Node {
   }
 }
 
-class TableParser extends V5Node {
+class TableParser extends Node {
   constructor() {
     super({ name: 'table' });
     this.addAttributes([
-      new V5ConstantTextAttribute({ name: 'id' }),
-      new V5TextAttribute({ name: 'label' }),
-      new V5ConstantBooleanAttribute({ name: 'enabled' })
+      new ConstantTextAttribute({ name: 'id' }),
+      new TextAttribute({ name: 'label' }),
+      new ConstantBooleanAttribute({ name: 'enabled' })
     ]);
-    const column = new V5Node({ name: 'column', key: 'columns', isMultiple: true });
-    column.addAttribute(new V5Attribute(V5Attribute.TYPE, { name: 'name' }));
+    const column = new Node({ name: 'column', key: 'columns', isMultiple: true });
+    column.addAttribute(new Attribute(Attribute.TYPE, { name: 'name' }));
     this.addNode(column);
-    const detail = new V5Node({ name: 'detail' });
-    detail.addAttribute(new V5Attribute(V5Attribute.TYPE, { name: 'code' }));
+    const detail = new Node({ name: 'detail' });
+    detail.addAttribute(new Attribute(Attribute.TYPE, { name: 'code' }));
     this.addNode(detail);
   }
 }
-class NestedParser extends V5Node {
+class NestedParser extends Node {
   constructor() {
     super({ name: 'nested' });
-    this.addAttribute(new V5TextAttribute({ name: 'title' }));
+    this.addAttribute(new TextAttribute({ name: 'title' }));
   }
 }
 function createEvent(
@@ -100,8 +100,8 @@ function createEvent(
 
 describe('ParsedNode', () => {
   it('keeps directly registered validation hooks local to each parsed instance and allows removal', () => {
-    const parser = new V5Node({ name: 'item' });
-    parser.addAttribute(new V5ConstantTextAttribute({ name: 'label' }));
+    const parser = new Node({ name: 'item' });
+    parser.addAttribute(new ConstantTextAttribute({ name: 'label' }));
     const first = parser.parseTree({ event: createEvent('<item label="First" />') });
     const second = parser.parseTree({ event: createEvent('<item label="Second" />') });
     const remove = first.registerListener({
@@ -120,9 +120,9 @@ describe('ParsedNode', () => {
   });
 
   it('parses explicitly typed constants and resolves their typed values', () => {
-    const parser = new V5Node({ name: 'param' });
-    parser.addAttribute(new V5ConstantTextAttribute({ name: 'name' }));
-    parser.addAttribute(new V5ConstantBooleanAttribute({ name: 'required' }));
+    const parser = new Node({ name: 'param' });
+    parser.addAttribute(new ConstantTextAttribute({ name: 'name' }));
+    parser.addAttribute(new ConstantBooleanAttribute({ name: 'required' }));
 
     const parsed = parser.parseTree({ event: createEvent('<param name="item" required="true" />') });
     const nameExpression = parsed.attribute('name').expression();
@@ -139,9 +139,9 @@ describe('ParsedNode', () => {
   });
 
   it('parses numbers explicitly, preserves their spelling and reports invalid input at the attribute', () => {
-    const parser = new V5Node({ name: 'item' });
+    const parser = new Node({ name: 'item' });
     const range = Object.freeze({ min: 0 });
-    const number = new V5NumberAttribute({ name: 'sort', range });
+    const number = new NumberAttribute({ name: 'sort', range });
     parser.addAttribute(number);
     const parsed = parser.parseTree({ event: createEvent('<item sort="045" />') });
     expect(parsed.attribute('sort').expression().value()).toBe(45);
@@ -178,8 +178,8 @@ describe('ParsedNode', () => {
   it('parses a selected constant type once and uses it again for resolved values', () => {
     const parse = vi.fn(numberType.parse);
     const valueType = Object.assign(new NumberType(), { parse });
-    const parser = new V5Node({ name: 'item' });
-    const number = new V5NumberAttribute({ name: 'count', valueType });
+    const parser = new Node({ name: 'item' });
+    const number = new NumberAttribute({ name: 'count', valueType });
     parser.addAttribute(number);
     const parsed = parser.parseTree({ event: createEvent('<item count="045" />') });
     expect(parsed.attribute('count').expression().value()).toBe(45);
@@ -189,10 +189,10 @@ describe('ParsedNode', () => {
   });
 
   it('does not normalize null parser defaults into concrete values', () => {
-    const parser = new V5Node({ name: 'column' });
-    parser.addAttribute(new V5BooleanAttribute({ name: 'show-if', key: 'showIf', defaultValue: null }));
-    parser.addAttribute(new V5BooleanAttribute({ name: 'hide-if', key: 'hideIf', defaultValue: null }));
-    parser.addAttribute(new V5BooleanAttribute({ name: 'enabled', defaultValue: null }));
+    const parser = new Node({ name: 'column' });
+    parser.addAttribute(new BooleanAttribute({ name: 'show-if', key: 'showIf', defaultValue: null }));
+    parser.addAttribute(new BooleanAttribute({ name: 'hide-if', key: 'hideIf', defaultValue: null }));
+    parser.addAttribute(new BooleanAttribute({ name: 'enabled', defaultValue: null }));
     const parsed = parser.parseTree({ event: createEvent('<column enabled="true" />') });
     parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
 
@@ -204,8 +204,8 @@ describe('ParsedNode', () => {
   });
 
   it('reports invalid boolean syntax while allowing omission, constants, references and evaluated code', () => {
-    const parser = new V5Node({ name: 'column' });
-    parser.addAttribute(new V5BooleanAttribute({ name: 'show-if' }));
+    const parser = new Node({ name: 'column' });
+    parser.addAttribute(new BooleanAttribute({ name: 'show-if' }));
     for (const source of [
       '<column />',
       '<column show-if="true" />',
@@ -236,8 +236,8 @@ describe('ParsedNode', () => {
   });
 
   it('validates boolean references after parsing while deferring evaluated conditions', () => {
-    const parser = new V5Node({ name: 'item' });
-    parser.addAttribute(new V5BooleanAttribute({ name: 'show-if' }));
+    const parser = new Node({ name: 'item' });
+    parser.addAttribute(new BooleanAttribute({ name: 'show-if' }));
     for (const source of [null, 'true', 'false', 'active', '$:isActive()']) {
       const parsed = parser.parseTree({
         event: createEvent(source == null ? '<item />' : `<item show-if="${source}" />`)
@@ -260,8 +260,8 @@ describe('ParsedNode', () => {
   it('skips parsing and validation for absent text attributes', () => {
     const syntax = { tryParse: vi.fn(), parse: vi.fn() };
     const validateFormatAttribute = vi.fn();
-    const parser = new V5Node({ name: 'item' });
-    parser.addAttribute(new V5TextAttribute({ name: 'title', syntax }));
+    const parser = new Node({ name: 'item' });
+    parser.addAttribute(new TextAttribute({ name: 'title', syntax }));
     const parsed = parser.parseTree({
       event: createEvent('<item />', {}, { validateFormatAttribute })
     });
@@ -311,10 +311,10 @@ describe('ParsedNode', () => {
     expect(expressions[0]).toBe(attribute.expression());
   });
   it('runs validation hooks around descendants and returns fresh diagnostics independently of parsing', () => {
-    const parser = new V5Node({ name: 'parent' });
-    const child = new V5Node({ name: 'child' });
-    parser.addAttribute(new V5ConstantTextAttribute({ name: 'label' }));
-    child.addAttribute(new V5BooleanAttribute({ name: 'show-if' }));
+    const parser = new Node({ name: 'parent' });
+    const child = new Node({ name: 'child' });
+    parser.addAttribute(new ConstantTextAttribute({ name: 'label' }));
+    child.addAttribute(new BooleanAttribute({ name: 'show-if' }));
     parser.addNode(child);
     const calls: string[] = [];
     parser.registerListener({
@@ -420,8 +420,8 @@ describe('ParsedNode', () => {
     expect(anotherStaticItem.attribute('label').expression().toString()).toBe('Another');
   });
   it('distinguishes absent functions from invalid supplied values', () => {
-    const parser = new V5Node({ name: 'item' });
-    parser.addAttribute(new V5FunctionAttribute({ name: 'action' }));
+    const parser = new Node({ name: 'item' });
+    parser.addAttribute(new FunctionAttribute({ name: 'action' }));
     for (const source of [null, '', '$:save()', 'save()', 'save', '$:true', '$:save(']) {
       const xml = source == null ? '<item />' : `<item action="${source}" />`;
       const reported: unknown[] = [];

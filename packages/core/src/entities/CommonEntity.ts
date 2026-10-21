@@ -1,7 +1,7 @@
-import { V5Node } from '../nodes/V5Node';
-import { V5AbstractEntity, V5AbstractEntityGenerics, V5AbstractEntityOptions } from './V5AbstractEntity';
+import { Node } from '../nodes/Node';
+import { AbstractEntity, AbstractEntityGenerics, AbstractEntityOptions } from './AbstractEntity';
 
-export interface V5CommonEntityOptions extends V5AbstractEntityOptions {
+export interface CommonEntityOptions extends AbstractEntityOptions {
   docs?: string;
   /**
    * Request the enclosing collection scope from a parser that supports scoped declarations.
@@ -9,18 +9,16 @@ export interface V5CommonEntityOptions extends V5AbstractEntityOptions {
   queryScoped?: boolean;
 }
 
-export interface V5CommonEntityListener {}
+export interface CommonEntityListener {}
 
-export interface V5CommonEntityGenerics extends V5AbstractEntityGenerics {
-  Options: V5CommonEntityOptions;
-  Listener: V5CommonEntityListener;
+export interface CommonEntityGenerics extends AbstractEntityGenerics {
+  Options: CommonEntityOptions;
+  Listener: CommonEntityListener;
 }
 
-export abstract class V5CommonEntity<
-  G extends V5CommonEntityGenerics = V5CommonEntityGenerics
-> extends V5AbstractEntity<G> {
+export abstract class CommonEntity<G extends CommonEntityGenerics = CommonEntityGenerics> extends AbstractEntity<G> {
   listeners: G['Listener'][];
-  parent: V5Node<any>;
+  parent: Node<any>;
 
   constructor(options: G['Options']) {
     super(options);
@@ -35,8 +33,8 @@ export abstract class V5CommonEntity<
     };
   }
 
-  getRootNode(): V5Node<any> {
-    return this.parent ? this.parent.getRootNode() : (this as unknown as V5Node<any>);
+  getRootNode(): Node<any> {
+    return this.parent ? this.parent.getRootNode() : (this as unknown as Node<any>);
   }
 
   registerListener(listener: G['Listener']) {
@@ -53,7 +51,7 @@ export abstract class V5CommonEntity<
     }
   }
 
-  setParent(parent: V5Node<any>) {
+  setParent(parent: Node<any>) {
     this.parent = parent;
   }
 }

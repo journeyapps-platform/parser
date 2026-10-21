@@ -1,4 +1,4 @@
-import { AttachmentType } from './Attachment';
+import { AttachmentType } from './AttachmentType';
 
 export class PhotoType extends AttachmentType {
   static readonly SUB_TYPE = 'photo';

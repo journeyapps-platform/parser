@@ -1,4 +1,4 @@
-import { V5Node, V5NodeGenerics, ParsedNodeShape } from '@ja-platform/parser-core';
+import { Node, NodeGenerics, ParsedNodeShape } from '@ja-platform/parser-core';
 import { ConstantExpression } from '@ja-platform/parser-expressions';
 import { IndexDatabase } from '@ja-platform/parser-schema';
 import { SchemaIndexExpression } from '../expressions/SchemaIndexExpression';
@@ -13,7 +13,7 @@ export interface SchemaIndexShape extends ParsedNodeShape {
   databases?: SchemaDatabasesExpression;
 }
 
-export class SchemaIndexNode extends V5Node<V5NodeGenerics<SchemaIndexShape>> {
+export class SchemaIndexNode extends Node<NodeGenerics<SchemaIndexShape>> {
   constructor() {
     super({ name: 'index', key: 'indexes', isMultiple: true });
     this.addAttribute(new SchemaNameAttribute({ name: 'name' }));

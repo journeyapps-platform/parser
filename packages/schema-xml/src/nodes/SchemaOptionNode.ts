@@ -1,4 +1,4 @@
-import { V5Node, V5NodeGenerics, ParsedNodeShape, ContentValueAttribute } from '@ja-platform/parser-core';
+import { Node, NodeGenerics, ParsedNodeShape, ContentValueAttribute } from '@ja-platform/parser-core';
 import { ConstantExpression, ConstantExpressionParser } from '@ja-platform/parser-expressions';
 import { textType } from '@ja-platform/parser-type-system';
 import { SchemaOptionKey, SchemaOptionKeyAttribute } from '../attributes/SchemaOptionKeyAttribute';
@@ -8,7 +8,7 @@ export interface SchemaOptionShape extends ParsedNodeShape {
   label: ConstantExpression<string>;
 }
 
-export class SchemaOptionNode extends V5Node<V5NodeGenerics<SchemaOptionShape>> {
+export class SchemaOptionNode extends Node<NodeGenerics<SchemaOptionShape>> {
   constructor() {
     super({ name: 'option', key: 'options', isMultiple: true });
     this.addAttribute(new SchemaOptionKeyAttribute());

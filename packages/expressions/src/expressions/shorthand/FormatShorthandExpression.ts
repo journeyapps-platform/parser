@@ -1,6 +1,8 @@
 import { ExpressionParser } from '../../ExpressionParser';
 import { ShorthandExpression, ShorthandExpressionOptions, ShorthandExpressionParser } from './ShorthandExpression';
-import { AbstractToken, ExpressionSource, TextToken, stringify } from '../../tokens';
+import { AbstractToken, ExpressionSource } from '../../tokens/AbstractToken';
+import { TextToken } from '../../tokens/text/TextToken';
+import { stringify } from '../../utils/tokenUtils';
 
 export interface FormatShorthandExpressionOptions extends ShorthandExpressionOptions {
   format: string;

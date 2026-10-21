@@ -1,12 +1,12 @@
-import { V5Attribute, V5AttributeGenerics, V5AttributeOptions } from '@ja-platform/parser-core';
+import { Attribute, AttributeGenerics, AttributeOptions } from '@ja-platform/parser-core';
 import { SchemaFieldTypeExpression, SchemaFieldTypeExpressionParser } from '../expressions/SchemaFieldTypeExpression';
 
-interface SchemaFieldTypeAttributeGenerics extends V5AttributeGenerics {
+interface SchemaFieldTypeAttributeGenerics extends AttributeGenerics {
   Value: SchemaFieldTypeExpression;
 }
 
-export class SchemaFieldTypeAttribute extends V5Attribute<SchemaFieldTypeAttributeGenerics> {
-  constructor(options: V5AttributeOptions) {
+export class SchemaFieldTypeAttribute extends Attribute<SchemaFieldTypeAttributeGenerics> {
+  constructor(options: AttributeOptions) {
     super('schema-field-type', { ...options, syntax: new SchemaFieldTypeExpressionParser() });
   }
 }

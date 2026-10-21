@@ -5,7 +5,8 @@ import { Field } from './Field';
 import { Relationship } from './Relationship';
 import { Schema } from '../schema/Schema';
 import { ModelIndex } from '../schema/ModelIndex';
-import { PrimitiveType, TextType } from './primitives';
+import { PrimitiveType } from './primitives/PrimitiveTypes';
+import { TextType } from './primitives/TextType';
 import { AbstractObjectTypeFactory, GenerateTypeEvent } from '../schema/TypeFactory';
 
 export interface NotificationConfig {

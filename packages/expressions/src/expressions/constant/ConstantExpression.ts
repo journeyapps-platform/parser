@@ -1,6 +1,8 @@
 import { ExpressionParser } from '../../ExpressionParser';
 import { AbstractExpression, AbstractExpressionOptions } from '../AbstractExpression';
-import { ExpressionSource, TextToken, stringify } from '../../tokens';
+import { ExpressionSource } from '../../tokens/AbstractToken';
+import { TextToken } from '../../tokens/text/TextToken';
+import { stringify } from '../../utils/tokenUtils';
 import { Type, textType } from '@ja-platform/parser-type-system';
 
 export interface ConstantExpressionOptions<T> extends AbstractExpressionOptions {

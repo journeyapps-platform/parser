@@ -1,6 +1,9 @@
 import { ExpressionParser } from '../../ExpressionParser';
 import { AbstractExpression, AbstractExpressionOptions, ExpressionDiagnostic } from '../AbstractExpression';
-import { AbstractToken, CodeToken, codeToken, ExpressionSource, JSToken, ReferencePath } from '../../tokens';
+import { AbstractToken, ExpressionSource } from '../../tokens/AbstractToken';
+import { CodeToken, ReferencePath } from '../../tokens/code/CodeToken';
+import { codeToken } from '../../utils/tokenUtils';
+import { JSToken } from '../../tokens/code/JSToken';
 import type { ValidationContext } from '../../definitions/ValidationContext';
 import type { Type } from '@ja-platform/parser-type-system';
 

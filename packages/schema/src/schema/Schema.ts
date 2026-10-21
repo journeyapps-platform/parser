@@ -3,7 +3,7 @@ import { Field, FieldFactory } from '../types/Field';
 import { Relationship, RelationshipTypeFactory } from '../types/Relationship';
 import { SchemaModelType, SchemaModelTypeFactory } from '../types/SchemaModelType';
 import { Type } from '@ja-platform/parser-type-system';
-import { PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives';
+import { PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives/PrimitiveTypes';
 import { PrimitiveTypeFactory, TypeFactory } from './TypeFactory';
 
 export type InferGetType<

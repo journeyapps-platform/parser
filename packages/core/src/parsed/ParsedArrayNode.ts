@@ -2,20 +2,20 @@ import { ParsedNodeValues, ParsedNodeValuesLike } from '../values/ParsedNodeValu
 import { ParsedExpressionValue } from './ParsedNodeTypes';
 import { TreeNode } from '@journeyapps/common-tree';
 
-import { V5Node } from '../nodes/V5Node';
+import { Node } from '../nodes/Node';
 import { AbstractValueProvider } from '../values/AbstractValueProvider';
 import { ParsedDiagnostic, ParsedDiagnosticStore } from './ParsedDiagnostic';
 import { ParsedNode } from './ParsedNode';
 
 export interface ParsedArrayNodeOptions {
-  definition: V5Node<any>;
+  definition: Node<any>;
   key: string;
 }
 
 export type ParsedArrayNodeChild = ParsedNode<any, any> | ParsedArrayNode<any>;
 
 export class ParsedArrayNode<Child extends ParsedArrayNodeChild = ParsedNode<any, any>> extends TreeNode {
-  public readonly definition: V5Node<any>;
+  public readonly definition: Node<any>;
   private readonly diagnostics = new ParsedDiagnosticStore();
 
   constructor(options: ParsedArrayNodeOptions) {

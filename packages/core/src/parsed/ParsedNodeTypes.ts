@@ -1,5 +1,5 @@
 import type { ConstantExpression, FormatStringExpression, AbstractExpression } from '@ja-platform/parser-expressions';
-import type { V5Node } from '../nodes/V5Node';
+import type { Node } from '../nodes/Node';
 import type { ParsedArrayNode } from './ParsedArrayNode';
 import type { ParsedAttribute } from './ParsedAttribute';
 import type { ParsedNode } from './ParsedNode';
@@ -60,8 +60,7 @@ export type ParsedNodeConstantAttributeName<T> =
 export type ParsedNodeShapeValue =
   ParsedExpression | ParsedNode<any, any> | ParsedArrayNode<any> | ParsedNodeShapeValue[] | null | undefined;
 
-export type ParsedNodeDefinition<T> = V5Node<any>;
-export type ParsedNodeAttributeShape<T> = T extends V5Node ? ParsedNodeShape : T;
+export type ParsedNodeAttributeShape<T> = T extends Node ? ParsedNodeShape : T;
 export type ParsedNodeShapeKey<Shape> = Extract<keyof ParsedNodeAttributeShape<Shape>, string>;
 export type ParsedNodeChildKey<Shape> = {
   [Key in ParsedNodeShapeKey<Shape>]: NonNullable<ParsedNodeAttributeShape<Shape>[Key]> extends ParsedChild

@@ -7,20 +7,22 @@ import {
   ParsedArrayNode,
   ParsedValue,
   ParserDefaultValueProvider,
-  V5Attribute,
-  V5Node,
-  V5BooleanAttribute,
-  V5ConstantTextAttribute,
-  V5ContentNode,
-  V5ExpressionAttribute,
-  V5NodeAlternatives,
-  V5NumberAttribute,
-  V5TextAttribute
+  Attribute,
+  Node,
+  BooleanAttribute,
+  ConstantTextAttribute,
+  ContentNode,
+  ExpressionAttribute,
+  NodeAlternatives,
+  NumberAttribute,
+  TextAttribute,
+  SetAttribute,
+  TextArrayAttribute
 } from '../src';
 
 const scope = { getReference: () => null };
 
-function parseDocument(definition: V5Node, source: string) {
+function parseDocument(definition: Node, source: string) {
   return definition.parseTree({
     event: { element: parse(source).documentElement, helper: { pushError: vi.fn() } },
     valueProviders: [new ConstantExpressionValueProvider()]
@@ -33,8 +35,8 @@ describe('Shared XML parsing', () => {
       defaultValue
     }))
   )('resolves literal defaults without engine policy: %j', ({ defaultValue }) => {
-    const definition = new V5Node({ name: 'settings' });
-    definition.addAttribute(new V5Attribute(V5Attribute.TYPE, { name: 'value', defaultValue }));
+    const definition = new Node({ name: 'settings' });
+    definition.addAttribute(new Attribute(Attribute.TYPE, { name: 'value', defaultValue }));
     const node = parseDocument(definition, '<settings />');
     const provider = new ParserDefaultValueProvider();
     const value = new ParsedValue(node.attribute('value'), [provider]);
@@ -44,10 +46,40 @@ describe('Shared XML parsing', () => {
     provider.dispose();
   });
 
+  it.each([
+    { attribute: new NumberAttribute({ name: 'value', defaultValue: 0 }), expected: 0 },
+    { attribute: new NumberAttribute({ name: 'value', defaultValue: 42 }), expected: 42 },
+    { attribute: new BooleanAttribute({ name: 'value', defaultValue: false }), expected: false },
+    { attribute: new BooleanAttribute({ name: 'value', defaultValue: true }), expected: true },
+    { attribute: new TextAttribute({ name: 'value', defaultValue: '' }), expected: '' },
+    { attribute: new TextAttribute({ name: 'value', defaultValue: 'hello' }), expected: 'hello' },
+    { attribute: new SetAttribute({ name: 'value', options: ['', 'one'], defaultValue: '' }), expected: '' },
+    {
+      attribute: new SetAttribute({ name: 'value', options: ['one'], defaultValue: 'one' }),
+      expected: 'one'
+    },
+    { attribute: new TextArrayAttribute({ name: 'value', defaultValue: [] }), expected: [] },
+    {
+      attribute: new TextArrayAttribute({ name: 'value', defaultValue: ['one', 'two'] }),
+      expected: ['one', 'two']
+    }
+  ])('resolves typed attribute defaults as literal values: $attribute.type / $expected', ({ attribute, expected }) => {
+    const definition = new Node({ name: 'settings' });
+    definition.addAttribute(attribute);
+    const node = parseDocument(definition, '<settings />');
+    const provider = new ParserDefaultValueProvider();
+    node.setValueProviders([provider]);
+    const value = node.valueTree();
+    expect(value.current).toEqual({ value: expected });
+    expect(attribute.serialize().defaultValue).toEqual(expected);
+    value.dispose();
+    provider.dispose();
+  });
+
   it('composes attributed child nodes and runs their parsing listeners', () => {
-    const definition = new V5Node({ name: 'settings' });
-    const child = new V5Node({ name: 'item', key: 'items', isMultiple: true });
-    child.addAttribute(new V5ConstantTextAttribute({ name: 'label' }));
+    const definition = new Node({ name: 'settings' });
+    const child = new Node({ name: 'item', key: 'items', isMultiple: true });
+    child.addAttribute(new ConstantTextAttribute({ name: 'label' }));
     const postParse = vi.fn();
     child.registerListener({ postParse });
     definition.addNode(child);
@@ -61,10 +93,10 @@ describe('Shared XML parsing', () => {
   });
 
   it('parses numeric and boolean attributes without an engine or schema context', () => {
-    const definition = new V5Node({ name: 'settings' });
+    const definition = new Node({ name: 'settings' });
     definition.addAttributes([
-      new V5NumberAttribute({ name: 'count', range: { min: 1, max: 10 } }),
-      new V5BooleanAttribute({ name: 'enabled' })
+      new NumberAttribute({ name: 'count', range: { min: 1, max: 10 } }),
+      new BooleanAttribute({ name: 'enabled' })
     ]);
     const node = parseDocument(definition, '<settings count="4" enabled="true" />');
     const value = node.valueTree();
@@ -84,17 +116,23 @@ describe('Shared XML parsing', () => {
   });
 
   it('retains repeated scalar content and validates required children', () => {
-    const definition = new V5Node({ name: 'settings' });
+    const definition = new Node({ name: 'settings' });
     definition.addNode(
-      new V5ContentNode({ name: 'count', key: 'counts', isMultiple: true, isRequired: true, valueType: numberType })
+      new ContentNode({
+        name: 'count',
+        key: 'counts',
+        isMultiple: true,
+        isRequired: true,
+        valueType: numberType
+      })
     );
     definition.addNode(
-      new V5NodeAlternatives({
+      new NodeAlternatives({
         key: 'label',
         exclusive: true,
         alternatives: [
-          new V5ContentNode({ name: 'title', valueType: textType }),
-          new V5ContentNode({ name: 'caption', valueType: textType })
+          new ContentNode({ name: 'title', valueType: textType }),
+          new ContentNode({ name: 'caption', valueType: textType })
         ]
       })
     );
@@ -111,27 +149,17 @@ describe('Shared XML parsing', () => {
     ]);
   });
 
-  it('supports expression validation and editor helpers through consumer-supplied interfaces', () => {
-    const definition = new V5Node({ name: 'settings' });
+  it('supports expression validation through consumer-supplied interfaces', () => {
+    const definition = new Node({ name: 'settings' });
     definition.addAttributes([
-      new V5ExpressionAttribute({ name: 'source' }),
-      new V5ConstantTextAttribute({ name: 'label' }),
-      new V5TextAttribute({ name: 'description', syntax: new ConstantExpressionParser(textType) })
+      new ExpressionAttribute({ name: 'source' }),
+      new ConstantTextAttribute({ name: 'label' }),
+      new TextAttribute({ name: 'description', syntax: new ConstantExpressionParser(textType) })
     ]);
     const node = parseDocument(definition, '<settings source="missing" label="Title" description="Details" />');
     expect(node.attribute('label').expression()).toBeInstanceOf(ConstantExpression);
     expect(node.validate({ scope })).toEqual([
       expect.objectContaining({ message: expect.stringContaining('missing') })
     ]);
-    expect(
-      new V5NumberAttribute({ name: 'count' }).getEditorV5Syntax({
-        typedBindingOrFunction: (options) => options.types
-      } as Parameters<V5NumberAttribute['getEditorV5Syntax']>[0])
-    ).toEqual(['number']);
-    expect(
-      new V5ExpressionAttribute({ name: 'source' }).getEditorV5Syntax({
-        typedBindingOrFunction: (options) => options
-      } as Parameters<V5ExpressionAttribute['getEditorV5Syntax']>[0])
-    ).toEqual({ types: null, writable: false, constants: false });
   });
 });

@@ -8,10 +8,10 @@ import {
   ParsedProviderValue,
   ParsedNodeValues,
   ParserDefaultValueProvider,
-  V5Node,
-  V5ContentNode,
-  V5ConstantTextAttribute,
-  V5BooleanAttribute
+  Node,
+  ContentNode,
+  ConstantTextAttribute,
+  BooleanAttribute
 } from '../src';
 
 class MutableProvider extends AbstractValueProvider {
@@ -25,17 +25,17 @@ class MutableProvider extends AbstractValueProvider {
 }
 
 function setup() {
-  const item = new V5Node({ name: 'item', key: 'items', isMultiple: true });
-  item.addAttribute(new V5ConstantTextAttribute({ name: 'label' }));
-  const definition = new V5Node({ name: 'resource' });
-  definition.addAttribute(new V5BooleanAttribute({ name: 'enabled' }));
-  definition.addNode(new V5ContentNode({ name: 'name', valueType: textType }));
-  const group = new V5Node({ name: 'group' });
-  group.addNode(new V5ContentNode({ name: 'timeout', valueType: numberType }));
+  const item = new Node({ name: 'item', key: 'items', isMultiple: true });
+  item.addAttribute(new ConstantTextAttribute({ name: 'label' }));
+  const definition = new Node({ name: 'resource' });
+  definition.addAttribute(new BooleanAttribute({ name: 'enabled' }));
+  definition.addNode(new ContentNode({ name: 'name', valueType: textType }));
+  const group = new Node({ name: 'group' });
+  group.addNode(new ContentNode({ name: 'timeout', valueType: numberType }));
   group.addNode(item);
   definition.addNode(group);
-  definition.addNode(new V5ContentNode({ name: 'score', key: 'scores', valueType: numberType, isMultiple: true }));
-  definition.addNode(new V5Node({ name: 'absent' }));
+  definition.addNode(new ContentNode({ name: 'score', key: 'scores', valueType: numberType, isMultiple: true }));
+  definition.addNode(new Node({ name: 'absent' }));
   const node = definition.parseTree({
     event: {
       element: parse(

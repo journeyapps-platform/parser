@@ -6,12 +6,11 @@ import {
   ShorthandExpression,
   ShorthandExpressionParser
 } from '@ja-platform/parser-expressions';
-import { V5EditorHelpers } from '../events/V5EditorContext';
-import { V5Attribute, V5AttributeGenerics } from './V5Attribute';
+import { Attribute, AttributeGenerics } from './Attribute';
 
 export type CombinedExpression = EvaluatedExpression | ShorthandExpression;
 
-export interface V5ExpressionAttributeGenerics extends V5AttributeGenerics {
+export interface ExpressionAttributeGenerics extends AttributeGenerics {
   Value: CombinedExpression | null;
 }
 
@@ -20,11 +19,11 @@ export interface V5ExpressionAttributeGenerics extends V5AttributeGenerics {
  * Examples include `user.name`, `$object.quantity` and `$:calculateTotal()`.
  * Bare identifiers always represent references; there is no literal text fallback.
  */
-export class V5ExpressionAttribute extends V5Attribute<V5ExpressionAttributeGenerics> {
+export class ExpressionAttribute extends Attribute<ExpressionAttributeGenerics> {
   static TYPE = 'expression-attribute';
 
-  constructor(options: V5ExpressionAttributeGenerics['Options']) {
-    super(V5ExpressionAttribute.TYPE, {
+  constructor(options: ExpressionAttributeGenerics['Options']) {
+    super(ExpressionAttribute.TYPE, {
       ...options,
       syntax:
         options.syntax ??
@@ -33,14 +32,6 @@ export class V5ExpressionAttribute extends V5Attribute<V5ExpressionAttributeGene
           new EvaluatedExpressionParser(),
           new ShorthandExpressionParser()
         ])
-    });
-  }
-
-  getEditorV5Syntax<T>(helpers: V5EditorHelpers<T>): T {
-    return helpers.typedBindingOrFunction({
-      types: null,
-      writable: false,
-      constants: false
     });
   }
 }

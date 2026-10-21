@@ -1,4 +1,4 @@
-import { V5Node, V5NodeGenerics, ParsedNodeShape, ParsedArrayNode, ParseTreeOptions } from '@ja-platform/parser-core';
+import { Node, NodeGenerics, ParsedNodeShape, ParsedArrayNode, ParseTreeOptions } from '@ja-platform/parser-core';
 import { SchemaModelNode } from './nodes/SchemaModelNode';
 import { ParsedSchemaNode } from './parsed/ParsedSchemaNode';
 import { ParsedSchemaModelNode } from './parsed/ParsedSchemaModelNode';
@@ -10,7 +10,7 @@ export interface SchemaShape extends ParsedNodeShape {
 /**
  * The schema XML grammar, producing a tree that can be converted to a schema.
  */
-export class SchemaDefinition extends V5Node<V5NodeGenerics<SchemaShape, ParsedSchemaNode>> {
+export class SchemaNode extends Node<NodeGenerics<SchemaShape, ParsedSchemaNode>> {
   constructor() {
     super({ name: 'data-model' });
     this.addNode(new SchemaModelNode());

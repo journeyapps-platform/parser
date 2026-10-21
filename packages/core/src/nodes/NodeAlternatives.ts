@@ -1,19 +1,21 @@
-import { ParsedArrayNode, ParsedNode, ParsedNodeShape } from '../parsed';
-import { ParseTreeOptions, V5Node, V5NodeGenerics, V5NodeOptions } from './V5Node';
+import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
+import { ParsedNode } from '../parsed/ParsedNode';
+import { ParsedNodeShape } from '../parsed/ParsedNodeTypes';
+import { ParseTreeOptions, Node, NodeGenerics, NodeOptions } from './Node';
 import { XMLElement } from '@journeyapps/domparser/lib';
 import type { NodeValidationContext } from '../parsed/ParsedNode';
 
-export interface V5NodeAlternativesOptions extends Omit<V5NodeOptions, 'name'> {
+export interface NodeAlternativesOptions extends Omit<NodeOptions, 'name'> {
   key: string;
-  alternatives: V5Node<any>[];
+  alternatives: Node<any>[];
   exclusive?: boolean;
 }
 
-export class V5NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> extends V5Node<V5NodeGenerics<Shape>> {
+export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> extends Node<NodeGenerics<Shape>> {
   private readonly exclusiveValue: boolean;
-  private readonly alternatives: V5Node<any>[];
+  private readonly alternatives: Node<any>[];
 
-  constructor(options: V5NodeAlternativesOptions) {
+  constructor(options: NodeAlternativesOptions) {
     super({
       ...options,
       name: options.key,
@@ -107,7 +109,7 @@ export class V5NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape>
     return null;
   }
 
-  private getMatchingAlternatives(element: XMLElement): V5Node<any>[] {
+  private getMatchingAlternatives(element: XMLElement): Node<any>[] {
     return this.alternatives.filter((alternative) => alternative.options.name === element.tagName);
   }
 
@@ -154,7 +156,7 @@ export class V5NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape>
     context
   }: {
     parent: ParsedNode;
-    definition: V5Node;
+    definition: Node;
     matchingElements: XMLElement[];
     context: NodeValidationContext;
   }): void {

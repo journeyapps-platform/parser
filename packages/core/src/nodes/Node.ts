@@ -2,16 +2,16 @@ import { XMLParseEvent } from '../XMLParseEvent';
 import * as xml from '@journeyapps/common-xml';
 import { XMLElement } from '@journeyapps/domparser/lib';
 import * as _ from 'lodash';
-import { V5Attribute } from '../attributes/V5Attribute';
-import { V5ContentTextAttribute } from '../attributes/V5ContentTextAttribute';
-import { V5CommonEntity, V5CommonEntityGenerics, V5CommonEntityOptions } from '../entities/V5CommonEntity';
+import { Attribute } from '../attributes/Attribute';
+import { ContentTextAttribute } from '../attributes/ContentTextAttribute';
+import { CommonEntity, CommonEntityGenerics, CommonEntityOptions } from '../entities/CommonEntity';
 import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
 import { ParsedNode } from '../parsed/ParsedNode';
 import { ParsedNodeShape } from '../parsed/ParsedNodeTypes';
 import { AbstractValueProvider } from '../values/AbstractValueProvider';
 import type { NodeValidationContext } from '../parsed/ParsedNode';
 
-export interface V5NodeListener<Shape extends ParsedNodeShape = ParsedNodeShape> {
+export interface NodeListener<Shape extends ParsedNodeShape = ParsedNodeShape> {
   /**
    * before the node is parsed
    */
@@ -31,7 +31,7 @@ export interface V5NodeListener<Shape extends ParsedNodeShape = ParsedNodeShape>
 /**
  * Represents a template for a node
  */
-export interface V5Template {
+export interface NodeTemplate {
   /**
    * Name of the node
    */
@@ -48,23 +48,23 @@ export interface V5Template {
   attrs?: string[];
 }
 
-export interface V5NodeOptions extends V5CommonEntityOptions {
+export interface NodeOptions extends CommonEntityOptions {
   isMultiple?: boolean;
   defaultValue?: unknown;
   isRequired?: boolean;
-  templates?: V5Template[];
+  templates?: NodeTemplate[];
 }
 
-export interface V5NodeGenerics<
+export interface NodeGenerics<
   Shape extends ParsedNodeShape = ParsedNodeShape,
   Parsed extends ParsedNode<Shape, any> = ParsedNode<Shape>,
   Value = unknown
-> extends V5CommonEntityGenerics {
+> extends CommonEntityGenerics {
   Shape: Shape;
   Parsed: Parsed;
   Value: Value;
-  Options: V5NodeOptions;
-  Listener: V5NodeListener<Shape>;
+  Options: NodeOptions;
+  Listener: NodeListener<Shape>;
 }
 
 export interface ParseTreeOptions {
@@ -74,9 +74,9 @@ export interface ParseTreeOptions {
   valueProviders?: readonly AbstractValueProvider[];
 }
 
-export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends V5CommonEntity<G> {
-  attributes: V5Attribute[];
-  nodes: V5Node<any>[];
+export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends CommonEntity<G> {
+  attributes: Attribute[];
+  nodes: Node<any>[];
 
   constructor(options: G['Options']) {
     super({
@@ -113,11 +113,11 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     };
   }
 
-  getNodes(name: string): V5Node<any>[] {
+  getNodes(name: string): Node<any>[] {
     return this.nodes.filter((n) => n.name == name);
   }
 
-  getNode(name: string): V5Node<any> {
+  getNode(name: string): Node<any> {
     for (let node of this.nodes) {
       if (node.name === name) {
         return node;
@@ -125,7 +125,7 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     }
   }
 
-  getAttribute(name: string): V5Attribute {
+  getAttribute(name: string): Attribute {
     for (let attr of this.attributes) {
       if (attr.name === name) {
         return attr;
@@ -146,10 +146,10 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     return this;
   }
 
-  getContentAttribute(): V5ContentTextAttribute | null {
+  getContentAttribute(): ContentTextAttribute | null {
     return this.attributes.find((attr) => {
-      return attr instanceof V5ContentTextAttribute;
-    }) as V5ContentTextAttribute;
+      return attr instanceof ContentTextAttribute;
+    }) as ContentTextAttribute;
   }
 
   getTemplate(cursor?: string): { template?: string; templates?: { name: string; template: string }[] } {
@@ -194,11 +194,11 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     };
   }
 
-  addAttributes(attrs: V5Attribute[]) {
+  addAttributes(attrs: Attribute[]) {
     attrs.forEach((a) => this.addAttribute(a));
   }
 
-  addAttribute(attribute: V5Attribute): V5Node<G> {
+  addAttribute(attribute: Attribute): Node<G> {
     if (this.attributes.find((x) => x.name === attribute.name)) {
       this.replaceAttribute(attribute);
     } else {
@@ -209,7 +209,7 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     return this;
   }
 
-  replaceAttribute(attribute: V5Attribute): V5Node<G> {
+  replaceAttribute(attribute: Attribute): Node<G> {
     const index = this.attributes.findIndex((attr) => attr.name === attribute.name);
     if (index === -1) {
       return;
@@ -220,13 +220,13 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     return this;
   }
 
-  addNode(node: V5Node<any>): V5Node<G> {
+  addNode(node: Node<any>): Node<G> {
     this.nodes.push(node);
     node.setParent(this);
     return this;
   }
 
-  registerListener(listener: V5NodeListener<G['Shape']>) {
+  registerListener(listener: NodeListener<G['Shape']>) {
     return super.registerListener(listener as G['Listener']);
   }
 
@@ -294,7 +294,7 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
   }): void {
     const parseContext: Record<string, any> = {};
 
-    this.attributes.forEach((definition: V5Attribute) => {
+    this.attributes.forEach((definition: Attribute) => {
       try {
         parsed.setAttribute(definition.parse(event, parseContext));
       } catch (ex) {
@@ -395,7 +395,7 @@ export class V5Node<G extends V5NodeGenerics<any> = V5NodeGenerics<any>> extends
     matchingElements
   }: {
     context: NodeValidationContext;
-    definition: V5Node<any>;
+    definition: Node<any>;
     matchingElements: XMLElement[];
   }): void {
     if (definition.options.isRequired) {

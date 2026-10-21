@@ -1,7 +1,8 @@
 import { ExpressionParser } from '../../ExpressionParser';
 import { AbstractExpression, AbstractExpressionOptions } from '../AbstractExpression';
 import { EvaluatedExpression, EvaluatedExpressionParser } from '../EvaluatedExpression';
-import { CodeToken, ExpressionSource } from '../../tokens';
+import { CodeToken } from '../../tokens/code/CodeToken';
+import { ExpressionSource } from '../../tokens/AbstractToken';
 
 /**
  * An explicitly evaluated function call, such as `$:save(true)` or `$:worker.save(user.name)`.

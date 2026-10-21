@@ -1,6 +1,6 @@
 import { XmlSchema as Schema } from './XmlSchema';
 import { error, parse } from '@journeyapps/common-xml';
-import { SchemaDefinition } from './SchemaDefinition';
+import { SchemaNode } from './SchemaNode';
 
 export interface LoadSchemaXmlOptions {
   source: string;
@@ -16,7 +16,7 @@ export function loadSchemaXml({ source }: LoadSchemaXmlOptions): Schema {
   if (schema.errors.length) return schema;
 
   const element = document.documentElement;
-  const definition = new SchemaDefinition();
+  const definition = new SchemaNode();
   if (element?.tagName !== definition.name) {
     schema.errors.push(error(element, `<${definition.name}> root tag expected`));
     return schema;

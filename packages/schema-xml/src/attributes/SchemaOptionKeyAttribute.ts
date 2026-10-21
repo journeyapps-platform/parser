@@ -1,4 +1,4 @@
-import { AttributeParseEvent, V5Attribute, V5AttributeGenerics } from '@ja-platform/parser-core';
+import { AttributeParseEvent, Attribute, AttributeGenerics } from '@ja-platform/parser-core';
 import { ConstantExpression, ConstantExpressionParser } from '@ja-platform/parser-expressions';
 import { booleanType, integerType, textType, Type } from '@ja-platform/parser-type-system';
 import { PrimitiveType } from '@ja-platform/parser-schema';
@@ -6,7 +6,7 @@ import { SchemaFieldTypeExpression } from '../expressions/SchemaFieldTypeExpress
 
 export type SchemaOptionKey = string | number | boolean;
 
-interface SchemaOptionKeyGenerics extends V5AttributeGenerics {
+interface SchemaOptionKeyGenerics extends AttributeGenerics {
   Value: ConstantExpression<SchemaOptionKey>;
   NormalizedValue: SchemaOptionKey;
 }
@@ -14,7 +14,7 @@ interface SchemaOptionKeyGenerics extends V5AttributeGenerics {
 /**
  * Choice keys use the enclosing field's declared literal type.
  */
-export class SchemaOptionKeyAttribute extends V5Attribute<SchemaOptionKeyGenerics> {
+export class SchemaOptionKeyAttribute extends Attribute<SchemaOptionKeyGenerics> {
   constructor() {
     super('schema-option-key', { name: 'key' });
   }

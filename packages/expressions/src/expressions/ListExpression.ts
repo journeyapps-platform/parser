@@ -1,5 +1,6 @@
 import { ExpressionParser } from '../ExpressionParser';
-import { AbstractToken, DelimiterToken, ExpressionSource } from '../tokens';
+import { AbstractToken, ExpressionSource } from '../tokens/AbstractToken';
+import { DelimiterToken } from '../tokens/DelimiterToken';
 import { AbstractExpression, AbstractExpressionOptions } from './AbstractExpression';
 
 /**

@@ -12,40 +12,20 @@ import {
   ConstantExpressionParser
 } from '@ja-platform/parser-expressions';
 import { Type, textType } from '@ja-platform/parser-type-system';
-import { V5CommonEntity, V5CommonEntityListener, V5CommonEntityOptions } from '../entities/V5CommonEntity';
-import { V5EditorHelpers } from '../events/V5EditorContext';
-import { V5Node } from '../nodes/V5Node';
-import { ParsedAttribute, ParsedAttributeOptions, ParsedNode } from '../parsed';
+import { CommonEntity, CommonEntityListener, CommonEntityOptions } from '../entities/CommonEntity';
+import { Node } from '../nodes/Node';
+import { ParsedAttribute, ParsedAttributeOptions } from '../parsed/ParsedAttribute';
+import { ParsedNode } from '../parsed/ParsedNode';
 
 export type CombinedAttributeExpression = EvaluatedExpression | ConstantExpression<unknown>;
 
-export enum DefaultValueKind {
-  COLOR = 'color',
-  SIZE = 'size'
-}
-
-export enum ComponentSize {
-  SMALL = 'small',
-  MEDIUM = 'medium',
-  LARGE = 'large'
-}
-
-export type DefaultValueMap<T extends any> = { [k in string | number | symbol]: T };
-
-export interface V5AttributeListener extends V5CommonEntityListener {}
+export interface AttributeListener extends CommonEntityListener {}
 
 export interface NodeChecker {
   hasAttributeType(type: string): boolean;
 }
 
-export type DefaultValueType<T> = { [k in ComponentSize]: T } | T;
-
-export enum AttributeCategory {
-  THEME = 'theme',
-  LAYOUT = 'layout'
-}
-
-export interface V5AttributeOptions<DEFAULT = any, VALUE = unknown> extends V5CommonEntityOptions {
+export interface AttributeOptions<DEFAULT = any, VALUE = unknown> extends CommonEntityOptions {
   /**
    * Accepted expression syntax. Defaults to prefixed code followed by constant text.
    */
@@ -57,18 +37,9 @@ export interface V5AttributeOptions<DEFAULT = any, VALUE = unknown> extends V5Co
   required?: boolean;
   configurable?: boolean;
   advanced?: boolean;
-
-  /**
-   * Used to categorise sets of attributes for easier filtering
-   */
-  category?: AttributeCategory;
   fragmentNamespace?: string;
 
   defaultValue?: DEFAULT;
-  /**
-   * Select a variant contribution explicitly; omitted defaults are literal values.
-   */
-  defaultValueKind?: DefaultValueKind;
   /**
    * The interim value to use when the component attribute is still being evaluated (ie. setting up watches),
    * will fallback to `defaultValue` if not set.
@@ -90,9 +61,9 @@ export interface V5AttributeOptions<DEFAULT = any, VALUE = unknown> extends V5Co
   mapGeneratedFunctions?: boolean;
 }
 
-export interface V5AttributeGenerics<O extends V5AttributeOptions = V5AttributeOptions> {
+export interface AttributeGenerics<O extends AttributeOptions = AttributeOptions> {
   Options: O;
-  Listener: V5AttributeListener;
+  Listener: AttributeListener;
   Value: any;
   NormalizedValue: unknown;
 }
@@ -102,9 +73,9 @@ export interface StringifyDirective {
   value: string | null;
 }
 
-export class V5Attribute<G extends V5AttributeGenerics = V5AttributeGenerics> extends V5CommonEntity<G> {
+export class Attribute<G extends AttributeGenerics = AttributeGenerics> extends CommonEntity<G> {
   static TYPE = 'base-attribute';
-  parent: V5Node<any>;
+  parent: Node<any>;
   type: string;
 
   constructor(type: string, options: G['Options']) {
@@ -141,7 +112,7 @@ export class V5Attribute<G extends V5AttributeGenerics = V5AttributeGenerics> ex
   }
 
   isEnclosedWith(checkerCB: (helper: NodeChecker) => boolean) {
-    let node: V5Node = this.parent;
+    let node: Node = this.parent;
 
     const checker: NodeChecker = {
       hasAttributeType(type: string): boolean {
@@ -168,14 +139,11 @@ export class V5Attribute<G extends V5AttributeGenerics = V5AttributeGenerics> ex
       ...super.serialize(),
       required: this.options.required,
       defaultValue: this.options.defaultValue,
-      defaultValueKind: this.options.defaultValueKind,
+
       docs: this.options.docs,
       type: 'standard',
       advanced: !!this.options.advanced
     };
-  }
-  getEditorV5Syntax<T>(helpers: V5EditorHelpers<T>): T {
-    return helpers.viewFunctionsSelection();
   }
 
   protected getParsedValue(event: AttributeParseEvent, _parseContext?: Record<string, any>): G['Value'] {

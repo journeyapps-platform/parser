@@ -3,7 +3,7 @@ import { TreeNode, TreeNodeListener } from '@journeyapps/common-tree';
 import { XMLParseEvent } from '../XMLParseEvent';
 
 import { XMLElement } from '@journeyapps/domparser/lib';
-import { V5Node } from '../nodes/V5Node';
+import { Node } from '../nodes/Node';
 import { ParsedArrayNode } from './ParsedArrayNode';
 import { ParsedAttribute } from './ParsedAttribute';
 import { ParsedDiagnostic, ParsedDiagnosticStore, ParsedValidationDiagnostic } from './ParsedDiagnostic';
@@ -15,7 +15,6 @@ import {
   ParsedNodeAttributeShape,
   ParsedNodeAttributeName,
   ParsedNodeChild,
-  ParsedNodeDefinition,
   ParsedNodeExpressionKey,
   ParsedNodeKnownChildKey,
   ParsedNodeValue,
@@ -29,7 +28,7 @@ import { ParsedValue } from '../values/ParsedValue';
 import { AbstractValueProvider } from '../values/AbstractValueProvider';
 
 export interface ParsedNodeOptions {
-  definition: V5Node<any>;
+  definition: Node<any>;
   event: XMLParseEvent<ParsedNode>;
   key?: string;
   valueProviders?: readonly AbstractValueProvider[];
@@ -72,7 +71,7 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
   private attributesByKey: Map<string, ParsedAttribute> = new Map();
   private childrenByKey: Map<string, ParsedChild> = new Map();
   private valueProviders?: readonly AbstractValueProvider[];
-  public readonly definition: ParsedNodeDefinition<T>;
+  public readonly definition: Node<any>;
   public readonly sourceElement: XMLElement;
   public readonly parseParentNode?: ParsedNode;
   private parsedContent: any;
@@ -80,7 +79,7 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
   private readonly reportError: (diagnostic: ParsedDiagnostic) => void;
 
   constructor(options: ParsedNodeOptions) {
-    const definition = options.definition as ParsedNodeDefinition<T>;
+    const definition = options.definition;
     super(options.key ?? definition.options.key);
     this.definition = definition;
     this.sourceElement = options.event.element;

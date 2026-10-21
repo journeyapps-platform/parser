@@ -1,4 +1,4 @@
-import { V5ConstantTextAttribute, V5AttributeOptions } from '@ja-platform/parser-core';
+import { ConstantTextAttribute, AttributeOptions } from '@ja-platform/parser-core';
 import { TextType } from '@ja-platform/parser-type-system';
 
 /**
@@ -16,8 +16,8 @@ class SchemaEnumType extends TextType {
   }
 }
 
-export class SchemaEnumAttribute extends V5ConstantTextAttribute {
-  constructor(options: V5AttributeOptions<string, string> & { values: readonly string[] }) {
+export class SchemaEnumAttribute extends ConstantTextAttribute {
+  constructor(options: AttributeOptions<string, string> & { values: readonly string[] }) {
     super({ ...options, valueType: new SchemaEnumType(options.values) });
   }
 }

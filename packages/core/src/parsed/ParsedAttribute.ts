@@ -1,18 +1,18 @@
 import { TreeEntity } from '@journeyapps/common-tree';
 import { XMLParseEvent } from '../XMLParseEvent';
 import { XMLPositional } from '@journeyapps/common-xml';
-import { V5Attribute } from '../attributes/V5Attribute';
+import { Attribute } from '../attributes/Attribute';
 import { ParsedDiagnosticStore, ParsedDiagnostic } from './ParsedDiagnostic';
 import { ParsedNode } from './ParsedNode';
 
-export interface ParsedAttributeOptions<Expression = any, Definition extends V5Attribute = V5Attribute> {
+export interface ParsedAttributeOptions<Expression = any, Definition extends Attribute = Attribute> {
   definition: Definition;
   event: XMLParseEvent<ParsedNode>;
   expression: Expression;
   parseContext?: Record<string, any>;
 }
 
-export class ParsedAttribute<Expression = any, Definition extends V5Attribute = V5Attribute> extends TreeEntity {
+export class ParsedAttribute<Expression = any, Definition extends Attribute = Attribute> extends TreeEntity {
   public readonly definition: Definition;
   private expressionValue: Expression;
   public readonly sourceElement: XMLPositional;

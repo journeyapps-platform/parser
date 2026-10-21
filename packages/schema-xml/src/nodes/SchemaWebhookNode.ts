@@ -1,10 +1,10 @@
 import {
-  V5Node,
-  V5NodeGenerics,
+  Node,
+  NodeGenerics,
   ParsedNodeShape,
   ParsedNode,
   ParsedArrayNode,
-  V5ConstantTextAttribute
+  ConstantTextAttribute
 } from '@ja-platform/parser-core';
 import { ConstantExpression } from '@ja-platform/parser-expressions';
 import { SchemaNameAttribute } from '../attributes/SchemaNameAttribute';
@@ -19,13 +19,13 @@ export interface SchemaWebhookShape extends ParsedNodeShape {
   fields: ParsedArrayNode<ParsedNode<SchemaWebhookFieldShape>>;
 }
 
-export class SchemaWebhookNode extends V5Node<V5NodeGenerics<SchemaWebhookShape>> {
+export class SchemaWebhookNode extends Node<NodeGenerics<SchemaWebhookShape>> {
   constructor() {
     super({ name: 'webhook', key: 'webhooks', isMultiple: true });
     this.addAttribute(new SchemaNameAttribute({ name: 'name' }));
     this.addAttribute(new SchemaEnumAttribute({ name: 'type', values: ['ready', 'update'], required: true }));
     this.addAttribute(new SchemaEnumAttribute({ name: 'receiver', values: ['pdfmailer', 'cloudcode'] }));
-    this.addAttribute(new V5ConstantTextAttribute({ name: 'action' }));
+    this.addAttribute(new ConstantTextAttribute({ name: 'action' }));
     this.addNode(new SchemaWebhookFieldNode());
   }
 }

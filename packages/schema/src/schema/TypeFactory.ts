@@ -1,6 +1,6 @@
 import { SchemaModelType } from '../types/SchemaModelType';
 import { Param } from '../types/Param';
-import { PrimitiveTypeInstance, PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives';
+import { PrimitiveTypeInstance, PrimitiveTypeMap, PrimitiveTypeName } from '../types/primitives/PrimitiveTypes';
 import { Relationship } from '../types/Relationship';
 import { Field } from '../types/Field';
 import { Schema } from './Schema';

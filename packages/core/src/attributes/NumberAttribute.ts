@@ -1,54 +1,42 @@
 import { AttributeParseEvent } from '../AttributeParseEvent';
 import { EvaluatedExpression, ConstantExpression } from '@ja-platform/parser-expressions';
 import { numberType } from '@ja-platform/parser-type-system';
-import { fanDefaultValue } from './AttributeDefaults';
-import {
-  DefaultValueType,
-  DefaultValueKind,
-  V5Attribute,
-  V5AttributeGenerics,
-  V5AttributeOptions
-} from './V5Attribute';
-import { V5EditorHelpers } from '../events/V5EditorContext';
-import type { V5Node } from '../nodes/V5Node';
+import { Attribute, AttributeGenerics, AttributeOptions } from './Attribute';
+import type { Node } from '../nodes/Node';
 
 export type CombinedNumberExpression = EvaluatedExpression | ConstantExpression<number>;
 
-export interface V5NumberAttributeRange {
+export interface NumberAttributeRange {
   min?: number;
   max?: number;
 }
 
-export interface V5NumberAttributeOptions extends V5AttributeOptions<DefaultValueType<number>, number> {
-  range?: V5NumberAttributeRange;
+export interface NumberAttributeOptions extends AttributeOptions<number, number> {
+  range?: NumberAttributeRange;
 }
 
-export interface V5NumberAttributeGenerics extends V5AttributeGenerics {
-  Options: V5NumberAttributeOptions;
+export interface NumberAttributeGenerics extends AttributeGenerics {
+  Options: NumberAttributeOptions;
   Value: CombinedNumberExpression | null;
   NormalizedValue: number;
 }
 
-export class V5NumberAttribute extends V5Attribute<V5NumberAttributeGenerics> {
+export class NumberAttribute extends Attribute<NumberAttributeGenerics> {
   static TYPE = 'number-attribute';
 
-  static isInstanceOf(attr: V5Attribute): attr is V5NumberAttribute {
-    return attr.type === V5NumberAttribute.TYPE;
+  static isInstanceOf(attr: Attribute): attr is NumberAttribute {
+    return attr.type === NumberAttribute.TYPE;
   }
 
-  constructor(options: V5NumberAttributeGenerics['Options']) {
-    super(V5NumberAttribute.TYPE, {
+  constructor(options: NumberAttributeGenerics['Options']) {
+    super(NumberAttribute.TYPE, {
       ...options,
       valueType: options.valueType ?? numberType,
-      defaultValueKind: DefaultValueKind.SIZE,
       configurable: options.configurable ?? true
     });
-    if (typeof this.options.defaultValue == 'number') {
-      this.options.defaultValue = fanDefaultValue(this.options.defaultValue);
-    }
   }
 
-  protected getParsedValue(event: AttributeParseEvent): V5NumberAttributeGenerics['Value'] {
+  protected getParsedValue(event: AttributeParseEvent): NumberAttributeGenerics['Value'] {
     const value = event.input.value;
     if (value.trim() === '') {
       return null;
@@ -56,7 +44,7 @@ export class V5NumberAttribute extends V5Attribute<V5NumberAttributeGenerics> {
     return super.getParsedValue(event);
   }
 
-  setParent(parent: V5Node<any>) {
+  setParent(parent: Node<any>) {
     super.setParent(parent);
     parent.registerListener({
       postParse: ({ parsed }) => {
@@ -78,14 +66,6 @@ export class V5NumberAttribute extends V5Attribute<V5NumberAttributeGenerics> {
           }
         });
       }
-    });
-  }
-
-  getEditorV5Syntax<T>(helpers: V5EditorHelpers<T>): T {
-    return helpers.typedBindingOrFunction({
-      types: ['number'],
-      writable: false,
-      constants: false
     });
   }
   serialize(): any {

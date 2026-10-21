@@ -1,24 +1,23 @@
 import type { EvaluatedExpression, ConstantExpression } from '@ja-platform/parser-expressions';
-import { V5Attribute, V5AttributeGenerics, V5AttributeOptions } from './V5Attribute';
-import { V5EditorHelpers } from '../events/V5EditorContext';
+import { Attribute, AttributeGenerics, AttributeOptions } from './Attribute';
 
 export type CombinedListExpression = EvaluatedExpression | ConstantExpression;
 
-export interface V5ListAttributeOptions extends V5AttributeOptions<string[]> {
+export interface ListAttributeOptions extends AttributeOptions<string[]> {
   options: string[];
   delimiter?: string;
 }
 
-export interface V5ListAttributeGenerics extends V5AttributeGenerics {
+export interface ListAttributeGenerics extends AttributeGenerics {
   Value: CombinedListExpression | null;
-  Options: V5ListAttributeOptions;
+  Options: ListAttributeOptions;
 }
 
-export class V5ListAttribute extends V5Attribute<V5ListAttributeGenerics> {
+export class ListAttribute extends Attribute<ListAttributeGenerics> {
   static TYPE = 'list-attribute';
   delimiter: string;
-  constructor(options: V5ListAttributeGenerics['Options']) {
-    super(V5ListAttribute.TYPE, {
+  constructor(options: ListAttributeGenerics['Options']) {
+    super(ListAttribute.TYPE, {
       ...options,
       options: options.options || [],
       configurable: options.configurable ?? true
@@ -26,8 +25,8 @@ export class V5ListAttribute extends V5Attribute<V5ListAttributeGenerics> {
     this.delimiter = options.delimiter ?? ',';
   }
 
-  static isInstanceOf(attr: V5Attribute): attr is V5ListAttribute {
-    return attr.type === V5ListAttribute.TYPE;
+  static isInstanceOf(attr: Attribute): attr is ListAttribute {
+    return attr.type === ListAttribute.TYPE;
   }
 
   static toList(value: any, delimiter = ','): any[] {
@@ -41,10 +40,6 @@ export class V5ListAttribute extends V5Attribute<V5ListAttributeGenerics> {
       // Value might be an object, which will be resolved elsewhere
       return value;
     }
-  }
-
-  getEditorV5Syntax<T>(helpers: V5EditorHelpers<T>): T {
-    return helpers.dynamicList(this.options.options, this.options.defaultValue);
   }
   serialize(): any {
     return {

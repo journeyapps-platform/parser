@@ -1,5 +1,7 @@
 import { ExpressionParser } from '../../ExpressionParser';
-import { AbstractToken, ExpressionSource, TextToken, PlaceholderToken } from '../../tokens';
+import { AbstractToken, ExpressionSource } from '../../tokens/AbstractToken';
+import { TextToken } from '../../tokens/text/TextToken';
+import { PlaceholderToken } from '../../tokens/text/PlaceholderToken';
 import type { ValidationContext } from '../../definitions/ValidationContext';
 import { AbstractExpression, AbstractExpressionOptions, ExpressionDiagnostic } from '../AbstractExpression';
 

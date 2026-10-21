@@ -1,13 +1,11 @@
 import { CombinedParser } from '../CombinedParser';
-import {
-  AbstractExpression,
-  EvaluatedExpressionParser,
-  ConstantExpressionParser,
-  FormatShorthandExpressionParser,
-  FunctionExpressionParser,
-  ShorthandExpressionParser
-} from '../expressions';
-import { ExpressionSource } from '../tokens';
+import { AbstractExpression } from '../expressions/AbstractExpression';
+import { EvaluatedExpressionParser } from '../expressions/EvaluatedExpression';
+import { ConstantExpressionParser } from '../expressions/constant/ConstantExpression';
+import { FormatShorthandExpressionParser } from '../expressions/shorthand/FormatShorthandExpression';
+import { FunctionExpressionParser } from '../expressions/function/FunctionExpression';
+import { ShorthandExpressionParser } from '../expressions/shorthand/ShorthandExpression';
+import { ExpressionSource } from '../tokens/AbstractToken';
 
 /**
  * Recognize evaluated code and references before preserving remaining input as constant text.

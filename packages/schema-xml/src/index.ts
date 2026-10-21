@@ -1,6 +1,6 @@
 export * from './schemaSerializer';
 export * from './loadSchemaXml';
-export * from './SchemaDefinition';
+export * from './SchemaNode';
 export * from './parsed/ParsedSchemaNode';
 export * from './parsed/ParsedSchemaModelNode';
 export * from './parsed/ParsedSchemaFieldNode';

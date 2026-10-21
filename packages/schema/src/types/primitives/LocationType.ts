@@ -1,5 +1,5 @@
 import { ObjectType, Type } from '@ja-platform/parser-type-system';
-import { TextType } from './Text';
+import { TextType } from './TextType';
 
 export class LocationType extends ObjectType {
   static readonly TYPE = 'location';

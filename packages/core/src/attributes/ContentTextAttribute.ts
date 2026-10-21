@@ -1,27 +1,22 @@
 import { AttributeParseEvent, AttributeParseInput } from '../AttributeParseEvent';
-import {
-  CombinedTextExpression,
-  V5TextAttribute,
-  V5TextAttributeGenerics,
-  V5TextAttributeOptions
-} from './V5TextAttribute';
-import { StringifyDirective } from './V5Attribute';
-import { ParsedNode } from '../parsed';
+import { CombinedTextExpression, TextAttribute, TextAttributeGenerics, TextAttributeOptions } from './TextAttribute';
+import { StringifyDirective } from './Attribute';
+import { ParsedNode } from '../parsed/ParsedNode';
 import { XMLParseEvent } from '../XMLParseEvent';
 import { getAttribute } from '@journeyapps/common-xml';
 
-export interface V5ContextTextAttributeOptions extends Omit<V5TextAttributeOptions, 'configurable'> {}
+export interface ContentTextAttributeOptions extends Omit<TextAttributeOptions, 'configurable'> {}
 
-export class V5ContentTextAttribute extends V5TextAttribute<
-  V5TextAttributeGenerics & {
-    Options: V5ContextTextAttributeOptions;
+export class ContentTextAttribute extends TextAttribute<
+  TextAttributeGenerics & {
+    Options: ContentTextAttributeOptions;
   }
 > {
   static TYPE = 'content-text-attribute';
 
-  constructor(options: V5ContextTextAttributeOptions) {
+  constructor(options: ContentTextAttributeOptions) {
     super(options);
-    this.type = V5ContentTextAttribute.TYPE;
+    this.type = ContentTextAttribute.TYPE;
   }
 
   protected getInput(event: XMLParseEvent<ParsedNode>): AttributeParseInput {
@@ -55,7 +50,7 @@ export class V5ContentTextAttribute extends V5TextAttribute<
     event.helper.validateFormatContent?.({ element: event.element, scope: event.scope, expression });
   }
 
-  stringify(value: V5TextAttributeGenerics['Value'], parent: ParsedNode): StringifyDirective {
+  stringify(value: TextAttributeGenerics['Value'], parent: ParsedNode): StringifyDirective {
     return {
       ...super.stringify(value, parent),
       isAttribute: !parent.content()

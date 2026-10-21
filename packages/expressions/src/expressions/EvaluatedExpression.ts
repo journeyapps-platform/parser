@@ -1,17 +1,11 @@
 import { ExpressionParser } from '../ExpressionParser';
 import { AbstractExpression, AbstractExpressionOptions } from './AbstractExpression';
-import {
-  AbstractToken,
-  CodeToken,
-  codeToken,
-  ExpressionSource,
-  JSToken,
-  PrefixToken,
-  TextToken,
-  FUNCTION_PREFIX,
-  hasFunctionPrefix,
-  leadingTrivia
-} from '../tokens';
+import { AbstractToken, ExpressionSource } from '../tokens/AbstractToken';
+import { CodeToken } from '../tokens/code/CodeToken';
+import { codeToken, hasFunctionPrefix, leadingTrivia } from '../utils/tokenUtils';
+import { JSToken } from '../tokens/code/JSToken';
+import { PrefixToken, FUNCTION_PREFIX } from '../tokens/code/PrefixToken';
+import { TextToken } from '../tokens/text/TextToken';
 
 /**
  * Code explicitly marked for evaluation by the `$:` prefix.

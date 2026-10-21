@@ -1,6 +1,6 @@
 import { ParsedNode } from '@ja-platform/parser-core';
 import { XmlSchema as Schema } from '../XmlSchema';
-import type { SchemaShape } from '../SchemaDefinition';
+import type { SchemaShape } from '../SchemaNode';
 
 export class ParsedSchemaNode extends ParsedNode<SchemaShape> {
   /**

@@ -9,12 +9,12 @@ import {
   ParsedProviderValue,
   ParsedValue,
   ParserDefaultValueProvider,
-  V5Attribute,
-  V5Node,
-  V5NumberAttribute,
-  V5TextAttribute,
-  V5TextArrayAttribute,
-  V5BooleanAttribute
+  Attribute,
+  Node,
+  NumberAttribute,
+  TextAttribute,
+  TextArrayAttribute,
+  BooleanAttribute
 } from '../src';
 
 class MutableProvider extends AbstractValueProvider {
@@ -41,8 +41,8 @@ class MutableProvider extends AbstractValueProvider {
 }
 
 function setup(defaultValue: unknown = 'default') {
-  const definition = new V5Node({ name: 'item' });
-  definition.addAttribute(new V5Attribute(V5Attribute.TYPE, { name: 'value', defaultValue }));
+  const definition = new Node({ name: 'item' });
+  definition.addAttribute(new Attribute(Attribute.TYPE, { name: 'value', defaultValue }));
   const event: XMLParseEvent<ParsedNode> = {
     element: parse('<item />').documentElement,
     scope: {} as XMLParseEvent<ParsedNode>['scope'],
@@ -54,8 +54,8 @@ function setup(defaultValue: unknown = 'default') {
 
 describe('Parsed values', () => {
   it('parses resolved numbers with the same type used for literal attributes', () => {
-    const definition = new V5Node({ name: 'item' });
-    definition.addAttribute(new V5NumberAttribute({ name: 'count' }));
+    const definition = new Node({ name: 'item' });
+    definition.addAttribute(new NumberAttribute({ name: 'count' }));
     const node = definition.parseTree({
       event: {
         element: parse('<item count="$:count" />').documentElement,
@@ -75,8 +75,8 @@ describe('Parsed values', () => {
   });
 
   it.each(['Hello {{name}}', '$:getLabel()'])('converts resolved text values while preserving source %j', (source) => {
-    const definition = new V5Node({ name: 'item' });
-    definition.addAttribute(new V5TextAttribute({ name: 'label' }));
+    const definition = new Node({ name: 'item' });
+    definition.addAttribute(new TextAttribute({ name: 'label' }));
     const node = definition.parseTree({
       event: {
         element: parse(`<item label="${source}" />`).documentElement,
@@ -103,8 +103,8 @@ describe('Parsed values', () => {
     [{}, true],
     [[], true]
   ])('converts resolved condition %j to %j', (input, expected) => {
-    const definition = new V5Node({ name: 'item' });
-    definition.addAttribute(new V5BooleanAttribute({ name: 'show-if', key: 'showIf' }));
+    const definition = new Node({ name: 'item' });
+    definition.addAttribute(new BooleanAttribute({ name: 'show-if', key: 'showIf' }));
     const node = definition.parseTree({
       event: {
         element: parse('<item show-if="$:getValue()" />').documentElement,
@@ -118,14 +118,14 @@ describe('Parsed values', () => {
   });
 
   it('honors an explicitly selected boolean type instead of applying condition truthiness', () => {
-    const attribute = new V5BooleanAttribute({ name: 'enabled', valueType: booleanType });
+    const attribute = new BooleanAttribute({ name: 'enabled', valueType: booleanType });
     expect(attribute.normalizeValue('false')).toBe(false);
     expect(() => attribute.normalizeValue('present')).toThrow(SyntaxError);
   });
 
   it('keeps text arrays as arrays and uses their configured delimiter', () => {
-    const definition = new V5Node({ name: 'item' });
-    definition.addAttribute(new V5TextArrayAttribute({ name: 'tags', delimiter: ';' }));
+    const definition = new Node({ name: 'item' });
+    definition.addAttribute(new TextArrayAttribute({ name: 'tags', delimiter: ';' }));
     const node = definition.parseTree({
       event: {
         element: parse('<item tags="first;second" />').documentElement,

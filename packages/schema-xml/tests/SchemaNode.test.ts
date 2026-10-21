@@ -6,7 +6,7 @@ import {
   ParserDefaultValueProvider,
   ParsedDiagnostic
 } from '@ja-platform/parser-core';
-import { SchemaDefinition } from '../src/SchemaDefinition';
+import { SchemaNode } from '../src/SchemaNode';
 import { IndexDirection } from '@ja-platform/parser-schema';
 import { QueryType } from '@ja-platform/parser-schema';
 import { toDOM } from '../src/schemaSerializer';
@@ -17,7 +17,7 @@ import notificationsXml from './fixtures/schema3-badge-count.xml?raw';
 
 it.each([schemaXml, notificationsXml])('parses existing schema XML into typed declarations %#', (source) => {
   const diagnostics: ParsedDiagnostic[] = [];
-  const parsed = new SchemaDefinition().parseTree({
+  const parsed = new SchemaNode().parseTree({
     event: { element: parse(source).documentElement, helper: { pushError: (error) => diagnostics.push(error) } },
     valueProviders: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]
   });
@@ -58,7 +58,7 @@ it.each([schemaXml, notificationsXml])('parses existing schema XML into typed de
 
 it('retains typed choice keys, index directions and explicit database lists', () => {
   const diagnostics: ParsedDiagnostic[] = [];
-  const parsed = new SchemaDefinition().parseTree({
+  const parsed = new SchemaNode().parseTree({
     event: {
       element: parse(`<data-model><model name="item" label="Item">
       <field name="status" label="Status" type="single-choice-integer"><option key="4">Ready</option></field>
@@ -95,7 +95,7 @@ it('links an explicit inverse and rejects ambiguous relationships during convers
       <belongs-to name="reviewer" model="person"/><display>Article</display>
     </model>
   </data-model>`;
-  const definition = new SchemaDefinition();
+  const definition = new SchemaNode();
   const parsed = definition.parseTree({
     event: { element: parse(source).documentElement, helper: { pushError: () => {} } }
   });

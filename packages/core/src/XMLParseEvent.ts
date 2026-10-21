@@ -7,7 +7,7 @@ import type {
   EvaluatedExpression
 } from '@ja-platform/parser-expressions';
 import type { ParsedNode } from './parsed/ParsedNode';
-import type { V5Attribute } from './attributes/V5Attribute';
+import type { Attribute } from './attributes/Attribute';
 
 export interface XMLParseEventHelper<
   Node extends ParsedNode = ParsedNode,
@@ -21,7 +21,7 @@ export interface XMLParseEventHelper<
     attribute,
     source
   }: {
-    attribute: V5Attribute;
+    attribute: Attribute;
     source: string;
   }): AbstractExpression | undefined;
   /**
