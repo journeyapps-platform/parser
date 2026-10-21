@@ -193,10 +193,10 @@ importers:
         specifier: workspace:^
         version: link:../type-system
       '@journeyapps/common-tree':
-        specifier: ^0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261021193021
         version: 0.0.0-dev-20261021193021
       '@journeyapps/common-utils':
-        specifier: ^0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261021193021
         version: 0.0.0-dev-20261021193021
       '@journeyapps/common-xml':
         specifier: 0.0.0-dev-20261021193021
