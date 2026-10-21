@@ -10,4 +10,4 @@ minimumReleaseAgeExclude:
   - '@wdio/utils@10.1.0'
   - webdriver@10.1.0
   - webdriverio@10.1.0
-  - '@journeyapps/common-xml@0.0.0-dev-20261019030214'
+  - '@journeyapps/*'
