@@ -17,8 +17,8 @@
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
     "@types/node": "^26.6.5",
-    "prettier": "3.9.6",
+    "prettier": "3.9.10",
     "typescript": "^7.0.2",
-    "npm-check-updates": "^23.1.0"
+    "npm-check-updates": "^23.1.1"
   }
 }

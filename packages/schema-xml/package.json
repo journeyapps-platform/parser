@@ -16,20 +16,20 @@
     "dist"
   ],
   "dependencies": {
-    "@ja-platform/parser-schema": "workspace:^",
-    "@ja-platform/parser-type-system": "workspace:^",
     "@ja-platform/parser-core": "workspace:^",
     "@ja-platform/parser-expressions": "workspace:^",
-    "@journeyapps/common-xml": "0.0.0-dev-20261019030214",
+    "@ja-platform/parser-schema": "workspace:^",
+    "@ja-platform/parser-type-system": "workspace:^",
+    "@journeyapps/common-xml": "0.0.0-dev-20261021193021",
     "@journeyapps/domparser": "^0.4.1"
   },
   "devDependencies": {
-    "vitest": "^5.0.5",
+    "@ja-platform/parser-schema-json": "workspace:^",
     "@vitest/browser": "^5.0.5",
     "@vitest/browser-webdriverio": "^5.0.0",
-    "webdriverio": "^10.1.0",
-    "@ja-platform/parser-schema-json": "workspace:^",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "vitest": "^5.0.5",
+    "webdriverio": "^10.1.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
