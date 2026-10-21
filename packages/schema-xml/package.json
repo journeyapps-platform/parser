@@ -16,10 +16,10 @@
     "dist"
   ],
   "dependencies": {
-    "@ja-platform/parser-core": "workspace:^",
-    "@ja-platform/parser-expressions": "workspace:^",
-    "@ja-platform/parser-schema": "workspace:^",
-    "@ja-platform/parser-type-system": "workspace:^",
+    "@ja-platform/parser-core": "workspace:*",
+    "@ja-platform/parser-expressions": "workspace:*",
+    "@ja-platform/parser-schema": "workspace:*",
+    "@ja-platform/parser-type-system": "workspace:*",
     "@journeyapps/common-xml": "0.0.0-dev-20261021193021",
     "@journeyapps/domparser": "^0.4.1"
   },

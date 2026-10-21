@@ -16,8 +16,8 @@
     "dist"
   ],
   "dependencies": {
-    "@ja-platform/parser-schema": "workspace:^",
-    "@ja-platform/parser-type-system": "workspace:^"
+    "@ja-platform/parser-schema": "workspace:*",
+    "@ja-platform/parser-type-system": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^5.0.5",

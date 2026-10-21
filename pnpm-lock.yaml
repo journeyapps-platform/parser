@@ -187,10 +187,10 @@ importers:
   packages/core:
     dependencies:
       '@ja-platform/parser-expressions':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../expressions
       '@ja-platform/parser-type-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../type-system
       '@journeyapps/common-tree':
         specifier: 0.0.0-dev-20261021193021
@@ -227,7 +227,7 @@ importers:
         specifier: ^8.0.6
         version: 8.0.6
       '@ja-platform/parser-type-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../type-system
     devDependencies:
       '@types/babel__traverse':
@@ -249,10 +249,10 @@ importers:
   packages/schema:
     dependencies:
       '@ja-platform/parser-expressions':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../expressions
       '@ja-platform/parser-type-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../type-system
       moment:
         specifier: ^2.31.0
@@ -274,10 +274,10 @@ importers:
   packages/schema-json:
     dependencies:
       '@ja-platform/parser-schema':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../schema
       '@ja-platform/parser-type-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../type-system
     devDependencies:
       '@vitest/browser':
@@ -296,16 +296,16 @@ importers:
   packages/schema-xml:
     dependencies:
       '@ja-platform/parser-core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@ja-platform/parser-expressions':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../expressions
       '@ja-platform/parser-schema':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../schema
       '@ja-platform/parser-type-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../type-system
       '@journeyapps/common-xml':
         specifier: 0.0.0-dev-20261021193021

@@ -19,7 +19,7 @@
     "@babel/parser": "^8.0.7",
     "@babel/traverse": "^8.0.7",
     "@babel/types": "^8.0.6",
-    "@ja-platform/parser-type-system": "workspace:^"
+    "@ja-platform/parser-type-system": "workspace:*"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.28.0",
