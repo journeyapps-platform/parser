@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { UnknownType, numberType, NumberType } from '@ja-platform/parser-type-system';
 import { ConstantExpression, FunctionExpression } from '@ja-platform/parser-expressions';
-import * as xml from '@journeyapps/common-xml';
+import { xmlInput } from './xmlInput';
+import { XMLSourceReference } from '../../document-xml/src/XMLSourceReference';
 import {
   ParsedAttribute,
   ParsedArrayNode,
@@ -10,7 +11,7 @@ import {
   Attribute,
   FunctionAttribute,
   Node,
-  XMLParseEvent,
+  ParseEvent,
   ParsedNode,
   TextAttribute,
   ConstantTextAttribute,
@@ -39,7 +40,7 @@ class StaticItemParser extends Node {
   }
 
   protected shouldParse(options: ParseTreeOptions): boolean {
-    return xml.getAttribute(options.event.element, 'query') == null;
+    return options.input.attribute('query') == null;
   }
 }
 
@@ -50,7 +51,7 @@ class QueryItemParser extends Node {
   }
 
   protected shouldParse(options: ParseTreeOptions): boolean {
-    return xml.getAttribute(options.event.element, 'query') != null;
+    return options.input.attribute('query') != null;
   }
 }
 
@@ -76,25 +77,14 @@ class NestedParser extends Node {
     this.addAttribute(new TextAttribute({ name: 'title' }));
   }
 }
-function createEvent(
-  source: string,
-  scope: any = {},
-  helperOverrides: Partial<XMLParseEvent<ParsedNode>['helper']> = {}
-): XMLParseEvent<ParsedNode> {
-  const document = xml.parse(source);
-  if (document.errors?.length) {
-    throw new Error(document.errors.map((error) => error.toString()).join('\n'));
-  }
-
+function createEvent(source: string, scope: any = {}, overrides: Partial<ParseEvent> = {}): ParseEvent {
   return {
-    element: document.documentElement,
+    ...xmlInput(source),
     scope,
-    helper: {
-      pushError: ({ element: _element, message }) => {
-        throw new Error(message);
-      },
-      ...helperOverrides
-    }
+    report: ({ message }) => {
+      throw new Error(message);
+    },
+    ...overrides
   };
 }
 
@@ -102,8 +92,8 @@ describe('ParsedNode', () => {
   it('keeps directly registered validation hooks local to each parsed instance and allows removal', () => {
     const parser = new Node({ name: 'item' });
     parser.addAttribute(new ConstantTextAttribute({ name: 'label' }));
-    const first = parser.parseTree({ event: createEvent('<item label="First" />') });
-    const second = parser.parseTree({ event: createEvent('<item label="Second" />') });
+    const first = parser.parseTree({ ...createEvent('<item label="First" />') });
+    const second = parser.parseTree({ ...createEvent('<item label="Second" />') });
     const remove = first.registerListener({
       postValidation({ node, context }) {
         context.report({
@@ -124,7 +114,7 @@ describe('ParsedNode', () => {
     parser.addAttribute(new ConstantTextAttribute({ name: 'name' }));
     parser.addAttribute(new ConstantBooleanAttribute({ name: 'required' }));
 
-    const parsed = parser.parseTree({ event: createEvent('<param name="item" required="true" />') });
+    const parsed = parser.parseTree({ ...createEvent('<param name="item" required="true" />') });
     const nameExpression = parsed.attribute('name').expression();
     const requiredExpression = parsed.attribute('required').expression();
 
@@ -143,7 +133,7 @@ describe('ParsedNode', () => {
     const range = Object.freeze({ min: 0 });
     const number = new NumberAttribute({ name: 'sort', range });
     parser.addAttribute(number);
-    const parsed = parser.parseTree({ event: createEvent('<item sort="045" />') });
+    const parsed = parser.parseTree({ ...createEvent('<item sort="045" />') });
     expect(parsed.attribute('sort').expression().value()).toBe(45);
     expect(parsed.attribute('sort').stringify().value).toBe('045');
     expect(number.normalizeValue('045')).toBe(45);
@@ -151,11 +141,11 @@ describe('ParsedNode', () => {
     for (const source of ['45px', 'Infinity']) {
       const reported: unknown[] = [];
       const parsed = parser.parseTree({
-        event: createEvent(
+        ...createEvent(
           `<item sort="${source}" />`,
           {},
           {
-            pushError: ({ element }) => reported.push(element)
+            report: ({ source }) => reported.push((source as XMLSourceReference).element)
           }
         )
       });
@@ -164,7 +154,7 @@ describe('ParsedNode', () => {
       expect(reported[0]).toMatchObject({ name: 'sort', value: source });
     }
     expect(range).toEqual({ min: 0 });
-    const outsideRange = parser.parseTree({ event: createEvent('<item sort="-1" />') });
+    const outsideRange = parser.parseTree({ ...createEvent('<item sort="-1" />') });
     const scope = { getReference: () => new UnknownType() };
     expect(outsideRange.errors({ deep: true })).toEqual([]);
     expect(outsideRange.validate({ scope })).toEqual([
@@ -181,7 +171,7 @@ describe('ParsedNode', () => {
     const parser = new Node({ name: 'item' });
     const number = new NumberAttribute({ name: 'count', valueType });
     parser.addAttribute(number);
-    const parsed = parser.parseTree({ event: createEvent('<item count="045" />') });
+    const parsed = parser.parseTree({ ...createEvent('<item count="045" />') });
     expect(parsed.attribute('count').expression().value()).toBe(45);
     expect(parse.mock.calls).toEqual([['045']]);
     expect(number.normalizeValue('1e3')).toBe(1000);
@@ -193,7 +183,7 @@ describe('ParsedNode', () => {
     parser.addAttribute(new BooleanAttribute({ name: 'show-if', key: 'showIf', defaultValue: null }));
     parser.addAttribute(new BooleanAttribute({ name: 'hide-if', key: 'hideIf', defaultValue: null }));
     parser.addAttribute(new BooleanAttribute({ name: 'enabled', defaultValue: null }));
-    const parsed = parser.parseTree({ event: createEvent('<column enabled="true" />') });
+    const parsed = parser.parseTree({ ...createEvent('<column enabled="true" />') });
     parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
 
     expect(parsed.value(['showIf', 'hideIf', 'enabled']).current).toEqual({
@@ -214,17 +204,17 @@ describe('ParsedNode', () => {
       '<column show-if="$:null" />',
       '<column show-if="$:save(null)" />'
     ]) {
-      const parsed = parser.parseTree({ event: createEvent(source) });
+      const parsed = parser.parseTree({ ...createEvent(source) });
       expect(parsed.attribute('show-if').errors()).toEqual([]);
     }
     for (const value of ['null', ' null ', 'true false', 'user.']) {
       const reported: string[] = [];
       const parsed = parser.parseTree({
-        event: createEvent(
+        ...createEvent(
           `<column show-if="${value}" />`,
           {},
           {
-            pushError: ({ element: _element, message }) => reported.push(message)
+            report: ({ message }) => reported.push(message)
           }
         )
       });
@@ -240,7 +230,7 @@ describe('ParsedNode', () => {
     parser.addAttribute(new BooleanAttribute({ name: 'show-if' }));
     for (const source of [null, 'true', 'false', 'active', '$:isActive()']) {
       const parsed = parser.parseTree({
-        event: createEvent(source == null ? '<item />' : `<item show-if="${source}" />`)
+        ...createEvent(source == null ? '<item />' : `<item show-if="${source}" />`)
       });
       const expression = parsed.attribute('show-if').expression();
       const getReference = vi.fn((): UnknownType | null => null);
@@ -259,22 +249,26 @@ describe('ParsedNode', () => {
 
   it('skips parsing and validation for absent text attributes', () => {
     const syntax = { tryParse: vi.fn(), parse: vi.fn() };
-    const validateFormatAttribute = vi.fn();
+    const validateExpression = vi.fn();
     const parser = new Node({ name: 'item' });
     parser.addAttribute(new TextAttribute({ name: 'title', syntax }));
     const parsed = parser.parseTree({
-      event: createEvent('<item />', {}, { validateFormatAttribute })
+      ...createEvent('<item />', {}, { validateExpression })
     });
 
     expect(parsed.attribute('title').expression()).toBeNull();
     expect(syntax.parse).not.toHaveBeenCalled();
-    expect(validateFormatAttribute).not.toHaveBeenCalled();
+    expect(validateExpression).not.toHaveBeenCalled();
   });
 
   it('reports invalid prefixed text on its attribute instead of treating it as literal text', () => {
     const reported: unknown[] = [];
     const parsed = new NestedParser().parseTree({
-      event: createEvent('<nested title="$:broken(" />', {}, { pushError: ({ element }) => reported.push(element) })
+      ...createEvent(
+        '<nested title="$:broken(" />',
+        {},
+        { report: ({ source }) => reported.push((source as XMLSourceReference).element) }
+      )
     });
     const attribute = parsed.attribute('title');
 
@@ -289,12 +283,12 @@ describe('ParsedNode', () => {
     const expressions: unknown[] = [];
     const parser = new NestedParser();
     const parsed = parser.parseTree({
-      event: createEvent(
+      ...createEvent(
         '<nested title="$:refresh()" />',
         {},
         {
-          validateFormatAttribute: ({ element: _element, attribute: attr, scope: _scope, expression }) => {
-            validations.push(attr);
+          validateExpression: ({ attribute, expression }) => {
+            validations.push(attribute.name);
             expressions.push(expression);
           }
         }
@@ -344,7 +338,7 @@ describe('ParsedNode', () => {
       }
     });
     const parsed = parser.parseTree({
-      event: createEvent('<parent label="Label"><child show-if="active" /></parent>')
+      ...createEvent('<parent label="Label"><child show-if="active" /></parent>')
     });
     expect(calls).toEqual([]);
     const context = { scope: { getReference: (): UnknownType | null => null } };
@@ -364,11 +358,7 @@ describe('ParsedNode', () => {
   });
   it('parses attributes into tree entities', () => {
     const parser = new TableParser();
-    function assertParseRequiresTreeOptions() {
-      // @ts-expect-error node parse requires ParseTreeOptions, not a raw XMLParseEvent
-      parser.parse(createEvent('<table />'));
-    }
-    const parsed = parser.parseTree({ event: createEvent('<table id="orders" label="Hello" enabled="true" />') });
+    const parsed = parser.parseTree({ ...createEvent('<table id="orders" label="Hello" enabled="true" />') });
 
     expect(parsed).toBeInstanceOf(ParsedNode);
     expect(parsed.definition).toBe(parser);
@@ -379,12 +369,12 @@ describe('ParsedNode', () => {
     expect(parsed.attribute('enabled').expression().value()).toBe(true);
     expect(parsed.attributes(['label'])).toEqual([parsed.attribute('label')]);
     expect(parsed.attributes(['missing'])).toEqual([]);
-    expect(assertParseRequiresTreeOptions).toBeTypeOf('function');
+    expect(parser.parse(createEvent('<table />'))).toBeInstanceOf(ParsedNode);
   });
   it('preserves child node arrays with common-tree children', () => {
     const parser = new TableParser();
     const parsed = parser.parseTree({
-      event: createEvent('<table><column name="one" /><column name="two" /><detail code="A1" /></table>')
+      ...createEvent('<table><column name="one" /><column name="two" /><detail code="A1" /></table>')
     });
 
     const columns = parsed.node('columns') as ParsedArrayNode;
@@ -398,7 +388,7 @@ describe('ParsedNode', () => {
   it('preserves repeated alternative child nodes with the same parsed key', () => {
     const parser = new AlternativeItemsParser();
     const parsed = parser.parseTree({
-      event: createEvent('<items><item label="Static" /><item query="items_query" /><item label="Another" /></items>')
+      ...createEvent('<items><item label="Static" /><item query="items_query" /><item label="Another" /></items>')
     });
 
     const items = parsed.node('items') as ParsedArrayNode<ParsedArrayNode>;
@@ -426,7 +416,7 @@ describe('ParsedNode', () => {
       const xml = source == null ? '<item />' : `<item action="${source}" />`;
       const reported: unknown[] = [];
       const parsed = parser.parseTree({
-        event: createEvent(xml, {}, { pushError: ({ element }) => reported.push(element) })
+        ...createEvent(xml, {}, { report: ({ source }) => reported.push((source as XMLSourceReference).element) })
       });
       const attribute = parsed.attribute('action');
       if (source === '$:save()') {

@@ -1,4 +1,4 @@
-import { AttributeParseEvent, Attribute, AttributeGenerics } from '@ja-platform/parser-core';
+import { Attribute, AttributeGenerics, AttributeParseEvent } from '@ja-platform/parser-core';
 import { ConstantExpression, ConstantExpressionParser } from '@ja-platform/parser-expressions';
 import { booleanType, integerType, textType, Type } from '@ja-platform/parser-type-system';
 import { PrimitiveType } from '@ja-platform/parser-schema';
@@ -20,14 +20,15 @@ export class SchemaOptionKeyAttribute extends Attribute<SchemaOptionKeyGenerics>
   }
 
   protected getParsedValue(event: AttributeParseEvent): ConstantExpression<SchemaOptionKey> {
-    const field = event.parentNode?.attrExpression('type') as SchemaFieldTypeExpression | undefined;
-    const type: Type<SchemaOptionKey> =
-      field?.primitive === PrimitiveType.BOOLEAN
-        ? booleanType
-        : field?.primitive === PrimitiveType.SINGLE_CHOICE_INTEGER ||
-            field?.primitive === PrimitiveType.MULTIPLE_CHOICE_INTEGER
-          ? integerType
-          : textType;
-    return new ConstantExpressionParser(type).parse(event.input.value);
+    const field = event.context?.parentNode?.attrExpression('type') as SchemaFieldTypeExpression | undefined;
+    return new ConstantExpressionParser(this.keyType(field?.primitive)).parse(event.input.value);
+  }
+
+  private keyType(primitive?: SchemaFieldTypeExpression['primitive']): Type<SchemaOptionKey> {
+    if (primitive === PrimitiveType.BOOLEAN) return booleanType;
+    if (primitive === PrimitiveType.SINGLE_CHOICE_INTEGER || primitive === PrimitiveType.MULTIPLE_CHOICE_INTEGER) {
+      return integerType;
+    }
+    return textType;
   }
 }

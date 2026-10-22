@@ -1,6 +1,6 @@
-import { XMLParseEvent } from '../XMLParseEvent';
-import * as xml from '@journeyapps/common-xml';
-import { XMLElement } from '@journeyapps/domparser/lib';
+import { ParseEvent } from '../ParseEvent';
+import { AttributeInputLocation } from '../input/AttributeInput';
+import type { NodeInput } from '../input/NodeInput';
 import * as _ from 'lodash';
 import { Attribute } from '../attributes/Attribute';
 import { ContentTextAttribute } from '../attributes/ContentTextAttribute';
@@ -8,24 +8,23 @@ import { CommonEntity, CommonEntityGenerics, CommonEntityOptions } from '../enti
 import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
 import { ParsedNode } from '../parsed/ParsedNode';
 import { ParsedNodeShape } from '../parsed/ParsedNodeTypes';
-import { AbstractValueProvider } from '../values/AbstractValueProvider';
 import type { NodeValidationContext } from '../parsed/ParsedNode';
 
 export interface NodeListener<Shape extends ParsedNodeShape = ParsedNodeShape> {
   /**
    * before the node is parsed
    */
-  preParse?({ event, parentEvent }: { event: XMLParseEvent<ParsedNode>; parentEvent: XMLParseEvent<ParsedNode> }): any;
+  preParse?({ event, parentEvent }: { event: ParseEvent; parentEvent: ParseEvent }): any;
 
   /**
-   * Before child elements are parsed.
+   * Before child inputs are parsed.
    */
-  preChildrenParse?(event: XMLParseEvent<ParsedNode>): void;
+  preChildrenParse?(event: ParseEvent): void;
 
   /**
    * Once this node has been parsed
    */
-  postParse?({ parsed, parentEvent }: { parsed: ParsedNode<Shape>; parentEvent: XMLParseEvent<ParsedNode> }): any;
+  postParse?({ parsed, parentEvent }: { parsed: ParsedNode<Shape>; parentEvent: ParseEvent }): any;
 }
 
 /**
@@ -67,11 +66,9 @@ export interface NodeGenerics<
   Listener: NodeListener<Shape>;
 }
 
-export interface ParseTreeOptions {
-  event: XMLParseEvent<ParsedNode>;
-  parentEvent?: XMLParseEvent<ParsedNode>;
+export interface ParseTreeOptions extends ParseEvent {
+  parentEvent?: ParseEvent;
   key?: string;
-  valueProviders?: readonly AbstractValueProvider[];
 }
 
 export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends CommonEntity<G> {
@@ -239,7 +236,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
 
   parseTree(options: ParseTreeOptions): G['Parsed'] {
     this.fireListeners((listener) => {
-      listener.preParse?.({ event: options.event, parentEvent: options.parentEvent });
+      listener.preParse?.({ event: options, parentEvent: options.parentEvent });
     });
 
     const result = this.createParsedNode(options);
@@ -255,7 +252,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     parentEvent
   }: {
     parsed: ParsedNode<G['Shape'], G['Value']>;
-    parentEvent?: XMLParseEvent<ParsedNode>;
+    parentEvent?: ParseEvent;
   }): void {
     this.fireListeners((listener) => listener.postParse?.({ parsed, parentEvent }));
   }
@@ -267,9 +264,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
   protected createParsedNode(options: ParseTreeOptions): G['Parsed'] {
     return new ParsedNode<G['Shape'], G['Value']>({
       definition: this,
-      event: options.event,
-      key: options.key,
-      valueProviders: options.valueProviders
+      ...options
     }) as G['Parsed'];
   }
 
@@ -280,8 +275,8 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     parsed: ParsedNode<G['Shape'], G['Value']>;
     options: ParseTreeOptions;
   }): void {
-    this.parseAttributes({ parsed, event: options.event });
-    options.event.helper.prepareNode?.(parsed);
+    this.parseAttributes({ parsed, event: options });
+    options.prepareNode?.(parsed);
     this.parseChildren({ parsed, options });
   }
 
@@ -290,13 +285,15 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     event
   }: {
     parsed: ParsedNode<G['Shape'], G['Value']>;
-    event: XMLParseEvent<ParsedNode>;
+    event: ParseEvent;
   }): void {
-    const parseContext: Record<string, any> = {};
-
     this.attributes.forEach((definition: Attribute) => {
       try {
-        parsed.setAttribute(definition.parse(event, parseContext));
+        const attribute = definition.parse(event.input, event);
+        parsed.setAttribute(attribute);
+        if (attribute.input?.location === AttributeInputLocation.CONTENT) {
+          parsed.setContent(attribute.expression());
+        }
       } catch (ex) {
         parsed.pushError({
           message: `failed to parse attribute: ${definition.options.name} on node ${this.options.name}`
@@ -304,8 +301,6 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
         console.error(`failed to parse attribute: ${definition.options.name} on node ${this.options.name}`, ex);
       }
     });
-
-    parsed.setContent(parseContext['_content']);
   }
 
   protected parseChildren({
@@ -315,29 +310,30 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     parsed: ParsedNode<G['Shape'], G['Value']>;
     options: ParseTreeOptions;
   }): void {
-    const event = options.event;
+    const event = options;
     this.fireListeners((listener) => listener.preChildrenParse?.({ ...event, parsedNode: parsed }));
 
-    const childElements = xml.children(event.element);
+    if (!event.input) return;
+    const childInputs = Array.from(event.input.children());
 
     this.nodes.forEach((definition) => {
-      definition.parseChildrenInto({ parent: parsed, elements: childElements, options });
+      definition.parseChildrenInto({ parent: parsed, inputs: childInputs, options });
     });
   }
 
   parseChildrenInto({
     parent,
-    elements,
+    inputs,
     options
   }: {
     parent: ParsedNode;
-    elements: XMLElement[];
+    inputs: NodeInput[];
     options: ParseTreeOptions;
   }): void {
-    const matchingElements = elements.filter((element) => element.tagName === this.options.name);
+    const matchingInputs = inputs.filter((input) => input.name === this.options.name);
     parent.registerListener({
       postValidation: ({ context }) => {
-        this.validateChildElementCount({ context, definition: this, matchingElements });
+        this.validateChildCount({ context, definition: this, matchingInputs });
       }
     });
 
@@ -347,8 +343,8 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
         key: this.options.key
       });
 
-      matchingElements.forEach((element, index) => {
-        const child = this.parseElement({ parent, options, element, key: `${index}` });
+      matchingInputs.forEach((input, index) => {
+        const child = this.parseInput({ parent, options, input, key: `${index}` });
         if (child) {
           arrayNode.addChild(child);
         }
@@ -358,8 +354,8 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
       return;
     }
 
-    for (const element of matchingElements) {
-      const child = this.parseElement({ parent, options, element, key: this.options.key });
+    for (const input of matchingInputs) {
+      const child = this.parseInput({ parent, options, input, key: this.options.key });
       if (child) {
         parent.setChild(this.options.key, child);
         return;
@@ -367,46 +363,44 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     }
   }
 
-  parseElement({
+  parseInput({
     parent,
     options,
-    element,
+    input,
     key
   }: {
     parent: ParsedNode;
     options: ParseTreeOptions;
-    element: XMLElement;
+    input: NodeInput;
     key: string;
   }): ParsedNode | null {
     return this.parse({
-      event: {
-        ...options.event,
-        element,
-        parentNode: parent
-      },
-      key,
-      valueProviders: parent.parsedValueProviders ?? options.valueProviders
+      ...options,
+      input,
+      parentNode: parent,
+      parentEvent: options,
+      key
     });
   }
 
-  protected validateChildElementCount({
+  protected validateChildCount({
     context,
     definition,
-    matchingElements
+    matchingInputs
   }: {
     context: NodeValidationContext;
     definition: Node<any>;
-    matchingElements: XMLElement[];
+    matchingInputs: NodeInput[];
   }): void {
     if (definition.options.isRequired) {
-      if (!definition.options.isMultiple && matchingElements.length !== 1) {
+      if (!definition.options.isMultiple && matchingInputs.length !== 1) {
         context.report({ message: `<${this.options.name}> must contain exactly one '<${definition.options.name}/>'` });
       }
 
-      if (definition.options.isMultiple && matchingElements.length === 0) {
+      if (definition.options.isMultiple && matchingInputs.length === 0) {
         context.report({ message: `<${this.options.name}> must contain at least one '<${definition.options.name}/>'` });
       }
-    } else if (!definition.options.isMultiple && matchingElements.length > 1) {
+    } else if (!definition.options.isMultiple && matchingInputs.length > 1) {
       context.report({
         message: `<${this.options.name}> cannot contain more than one '<${definition.options.name}/>'`
       });

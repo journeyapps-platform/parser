@@ -4,6 +4,8 @@ import { webdriverio } from '@vitest/browser-webdriverio';
 export default defineConfig({
   optimizeDeps: {
     include: [
+      '@ja-platform/parser-document-xml',
+      '@journeyapps/domparser',
       '@ja-platform/parser-schema',
       '@ja-platform/parser-schema-json',
       '@ja-platform/parser-core',

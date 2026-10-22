@@ -1,9 +1,9 @@
-import { AttributeParseEvent, AttributeParseInput } from '../AttributeParseEvent';
-import { CombinedTextExpression, TextAttribute, TextAttributeGenerics, TextAttributeOptions } from './TextAttribute';
+import { AttributeInputLocation } from '../input/AttributeInput';
+import type { NodeInput } from '../input/NodeInput';
+import type { AttributeInput } from '../input/AttributeInput';
+import { TextAttribute, TextAttributeGenerics, TextAttributeOptions } from './TextAttribute';
 import { StringifyDirective } from './Attribute';
 import { ParsedNode } from '../parsed/ParsedNode';
-import { XMLParseEvent } from '../XMLParseEvent';
-import { getAttribute } from '@journeyapps/common-xml';
 
 export interface ContentTextAttributeOptions extends Omit<TextAttributeOptions, 'configurable'> {}
 
@@ -19,35 +19,12 @@ export class ContentTextAttribute extends TextAttribute<
     this.type = ContentTextAttribute.TYPE;
   }
 
-  protected getInput(event: XMLParseEvent<ParsedNode>): AttributeParseInput {
-    const input = super.getInput(event);
-    if (input.value != null) {
-      return input;
-    }
-    return { value: event.element?.textContent ?? null, source: event.element };
-  }
-
-  protected getParsedValue(
-    event: AttributeParseEvent,
-    parseContext: Record<string, any> = {}
-  ): CombinedTextExpression | null {
-    const expression = super.getParsedValue(event, parseContext);
-    if (getAttribute(event.element, this.options.name) == null) {
-      parseContext['_content'] = expression;
-    }
-    return expression;
-  }
-
-  protected validateInput(
-    event: AttributeParseEvent,
-    expression: CombinedTextExpression,
-    parseContext: Record<string, any>
-  ): void {
-    if (getAttribute(event.element, this.options.name) != null) {
-      super.validateInput(event, expression, parseContext);
-      return;
-    }
-    event.helper.validateFormatContent?.({ element: event.element, scope: event.scope, expression });
+  protected getInput(node?: NodeInput): AttributeInput | undefined {
+    const attribute = node?.attribute(this.name);
+    if (attribute) return attribute;
+    const content = node?.content();
+    if (!content) return undefined;
+    return { ...content, location: AttributeInputLocation.CONTENT };
   }
 
   stringify(value: TextAttributeGenerics['Value'], parent: ParsedNode): StringifyDirective {

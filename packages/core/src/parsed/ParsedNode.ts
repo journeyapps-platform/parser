@@ -1,8 +1,8 @@
 import { ParsedNodeValues, ParsedNodeValuesLike } from '../values/ParsedNodeValues';
 import { TreeNode, TreeNodeListener } from '@journeyapps/common-tree';
-import { XMLParseEvent } from '../XMLParseEvent';
+import { ParseEvent } from '../ParseEvent';
 
-import { XMLElement } from '@journeyapps/domparser/lib';
+import type { NodeInput } from '../input/NodeInput';
 import { Node } from '../nodes/Node';
 import { ParsedArrayNode } from './ParsedArrayNode';
 import { ParsedAttribute } from './ParsedAttribute';
@@ -27,11 +27,9 @@ import {
 import { ParsedValue } from '../values/ParsedValue';
 import { AbstractValueProvider } from '../values/AbstractValueProvider';
 
-export interface ParsedNodeOptions {
+export interface ParsedNodeOptions extends ParseEvent {
   definition: Node<any>;
-  event: XMLParseEvent<ParsedNode>;
   key?: string;
-  valueProviders?: readonly AbstractValueProvider[];
 }
 
 export interface ParsedNodeValidationContext {
@@ -72,7 +70,7 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
   private childrenByKey: Map<string, ParsedChild> = new Map();
   private valueProviders?: readonly AbstractValueProvider[];
   public readonly definition: Node<any>;
-  public readonly sourceElement: XMLElement;
+  public readonly input?: NodeInput;
   public readonly parseParentNode?: ParsedNode;
   private parsedContent: any;
   private readonly diagnostics = new ParsedDiagnosticStore();
@@ -82,12 +80,9 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
     const definition = options.definition;
     super(options.key ?? definition.options.key);
     this.definition = definition;
-    this.sourceElement = options.event.element;
-    this.parseParentNode = options.event.parentNode;
-    this.reportError = options.event.helper.pushError;
-    if (options.valueProviders) {
-      this.valueProviders = Object.freeze([...options.valueProviders]);
-    }
+    this.input = options.input;
+    this.parseParentNode = options.parentNode;
+    this.reportError = options.report;
   }
 
   get type(): string {
@@ -226,11 +221,11 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
    */
   validate({ scope }: ParsedNodeValidationContext): ParsedValidationDiagnostic[] {
     const diagnostics: ParsedValidationDiagnostic[] = [];
-    const element = this.sourceElement;
+    const source = this.input?.source;
     const context: NodeValidationContext = {
       scope,
       report(diagnostic) {
-        diagnostics.push(diagnostic.token ? diagnostic : { ...diagnostic, element: diagnostic.element ?? element });
+        diagnostics.push(diagnostic.token ? diagnostic : { ...diagnostic, source: diagnostic.source ?? source });
       }
     };
     this.iterateListeners((listener) => listener.preValidation?.({ node: this, context }));
@@ -240,7 +235,7 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
           attribute
             .expression()
             ?.validate(scope)
-            .map((diagnostic) => ({ ...diagnostic, element })) ?? []
+            .map((diagnostic) => ({ ...diagnostic, source: attribute.input?.source ?? source })) ?? []
       ),
       ...this.nodes().flatMap((child) => child.validate({ scope }))
     );
@@ -248,9 +243,9 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
     return diagnostics;
   }
 
-  pushError({ message, element = this.sourceElement, type }: ParsedDiagnostic): ParsedDiagnostic {
-    const diagnostic = this.diagnostics.pushError({ message, element, type });
-    this.reportError({ element, message, type });
+  pushError({ message, source = this.input?.source, type }: ParsedDiagnostic): ParsedDiagnostic {
+    const diagnostic = this.diagnostics.pushError({ message, source, type });
+    this.reportError({ source, message, type });
     return diagnostic;
   }
 

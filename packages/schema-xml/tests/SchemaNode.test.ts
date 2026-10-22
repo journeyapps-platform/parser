@@ -1,6 +1,9 @@
+import { xmlInput } from './xmlInput';
 import { serializeSchema, deserializeSchema } from '@ja-platform/parser-schema-json';
 import { expect, it } from 'vitest';
 import { parse, prettyText } from '@journeyapps/common-xml';
+import { DOMParser } from '@journeyapps/domparser';
+import { loadSchemaXml } from '../src/loadSchemaXml';
 import {
   ConstantExpressionValueProvider,
   ParserDefaultValueProvider,
@@ -15,12 +18,53 @@ import schemaXml from './fixtures/schema3.xml?raw';
 // @ts-ignore
 import notificationsXml from './fixtures/schema3-badge-count.xml?raw';
 
+it('reports invalid choice keys at the XML attribute and skips schema conversion', () => {
+  const source = `<data-model><model name="item" label="Item">
+    <field name="status" label="Status" type="single-choice-integer">
+      <option key="invalid">Ready</option>
+    </field><display>Item</display>
+  </model></data-model>`;
+  const schema = loadSchemaXml({ source });
+  expect(schema.errors).toHaveLength(1);
+  const model = schema.parsedNode.node('models').nodes()[0];
+  const field = model.node('fields').nodes()[0];
+  const attribute = field.node('options').nodes()[0].attribute('key');
+  expect(schema.errors[0]).toBe(attribute.errors()[0]);
+  expect(schema.errors[0].source).toBe(attribute.input.source);
+  const { start, end } = schema.errors[0].source.range;
+  expect(source.slice(start, end)).toContain('invalid');
+  expect(schema.errors[0].message).toBeTruthy();
+  expect(schema.parsedNode).toBeDefined();
+  expect(schema.objects).toEqual({});
+});
+
+it('retains character offsets for XML syntax errors', () => {
+  const source = '<data-model>\n  <model name="item"></wrong>\n</data-model>';
+  const schema = loadSchemaXml({ source });
+  const original = new DOMParser().parseFromString(source, 'text/xml').errors;
+  expect(schema.errors.length).toBeGreaterThan(0);
+  expect(schema.errors.map((diagnostic) => diagnostic.source.range)).toEqual(
+    original.map((error) => ({ start: error.startOffset, end: error.endOffset ?? error.startOffset }))
+  );
+  expect(schema.parsedNode).toBeUndefined();
+});
+
+it('locates an unexpected root using a source reference', () => {
+  const source = '<wrong />';
+  const schema = loadSchemaXml({ source });
+  expect(schema.errors).toHaveLength(1);
+  expect(schema.errors[0].message).toBe('<data-model> root tag expected');
+  const { start, end } = schema.errors[0].source.range;
+  expect(source.slice(start, end)).toContain('wrong');
+});
+
 it.each([schemaXml, notificationsXml])('parses existing schema XML into typed declarations %#', (source) => {
   const diagnostics: ParsedDiagnostic[] = [];
   const parsed = new SchemaNode().parseTree({
-    event: { element: parse(source).documentElement, helper: { pushError: (error) => diagnostics.push(error) } },
-    valueProviders: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]
+    ...xmlInput(source),
+    report: (error) => diagnostics.push(error)
   });
+  parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
   expect(diagnostics).toEqual([]);
   const asset = parsed
     .node('models')
@@ -59,17 +103,15 @@ it.each([schemaXml, notificationsXml])('parses existing schema XML into typed de
 it('retains typed choice keys, index directions and explicit database lists', () => {
   const diagnostics: ParsedDiagnostic[] = [];
   const parsed = new SchemaNode().parseTree({
-    event: {
-      element: parse(`<data-model><model name="item" label="Item">
+    ...xmlInput(`<data-model><model name="item" label="Item">
       <field name="status" label="Status" type="single-choice-integer"><option key="4">Ready</option></field>
       <field name="enabled" label="Enabled" type="boolean"><option key="false">Disabled</option></field>
       <field name="file" label="File" type="attachment" media="application/pdf" auto-download="true"/>
       <index on="-status, +enabled" database="app, cloud"/><display>{status}</display>
-    </model></data-model>`).documentElement,
-      helper: { pushError: (error) => diagnostics.push(error) }
-    },
-    valueProviders: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]
+    </model></data-model>`),
+    report: (error) => diagnostics.push(error)
   });
+  parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
   expect(diagnostics).toEqual([]);
   const converted = parsed.toSchema().objects.item;
   expect(converted.attributes.status.type.toJSON()).toMatchObject({
@@ -97,17 +139,16 @@ it('links an explicit inverse and rejects ambiguous relationships during convers
   </data-model>`;
   const definition = new SchemaNode();
   const parsed = definition.parseTree({
-    event: { element: parse(source).documentElement, helper: { pushError: () => {} } }
+    ...xmlInput(source),
+    report: () => {}
   });
   const schema = parsed.toSchema();
   expect(schema.objects.person.hasMany.articles).toBe(schema.objects.article.belongsTo.author);
   expect(schema.objects.article.belongsTo.reviewer.foreignName).toBeNull();
 
   const ambiguous = definition.parseTree({
-    event: {
-      element: parse(source.replace(' inverse-of="author"', '')).documentElement,
-      helper: { pushError: () => {} }
-    }
+    ...xmlInput(source.replace(' inverse-of="author"', '')),
+    report: () => {}
   });
   expect(() => ambiguous.toSchema()).toThrow('Cannot resolve relationship');
 });

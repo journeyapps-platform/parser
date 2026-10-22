@@ -1,6 +1,6 @@
+import { xmlInput } from './xmlInput';
 import { numberType, textType } from '@ja-platform/parser-type-system';
 import { expect, it, vi } from 'vitest';
-import { parse } from '@journeyapps/common-xml';
 import {
   AbstractValueProvider,
   ConstantExpressionValueProvider,
@@ -37,15 +37,11 @@ function setup() {
   definition.addNode(new ContentNode({ name: 'score', key: 'scores', valueType: numberType, isMultiple: true }));
   definition.addNode(new Node({ name: 'absent' }));
   const node = definition.parseTree({
-    event: {
-      element: parse(
-        '<resource enabled="true"><name>Hello {name}</name><group><timeout>30</timeout><item label="first" /><item label="second" /></group><score>10</score><score>20</score></resource>'
-      ).documentElement,
-      helper: {
-        pushError: ({ element: _element, message }) => {
-          throw new Error(message);
-        }
-      }
+    ...xmlInput(
+      '<resource enabled="true"><name>Hello {name}</name><group><timeout>30</timeout><item label="first" /><item label="second" /></group><score>10</score><score>20</score></resource>'
+    ),
+    report: ({ message }) => {
+      throw new Error(message);
     }
   });
   const mutable = new MutableProvider();

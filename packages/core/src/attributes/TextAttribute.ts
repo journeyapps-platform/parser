@@ -1,3 +1,4 @@
+import { AttributeInputLocation } from '../input/AttributeInput';
 import { AttributeParseEvent } from '../AttributeParseEvent';
 import { Attribute, AttributeGenerics, AttributeOptions } from './Attribute';
 import {
@@ -42,25 +43,18 @@ export class TextAttribute<T extends TextAttributeGenerics<unknown> = TextAttrib
     return attr.type === TextAttribute.TYPE;
   }
 
-  protected getParsedValue(
-    event: AttributeParseEvent,
-    parseContext: Record<string, any> = {}
-  ): CombinedTextExpression | null {
-    const expression = super.getParsedValue(event, parseContext);
-    this.validateInput(event, expression, parseContext);
+  protected getParsedValue(event: AttributeParseEvent): CombinedTextExpression | null {
+    const expression = super.getParsedValue(event);
+    this.validateInput(event, expression);
     return expression;
   }
 
-  protected validateInput(
-    event: AttributeParseEvent,
-    expression: CombinedTextExpression,
-    parseContext: Record<string, any>
-  ): void {
-    event.helper.validateFormatAttribute?.({
-      element: event.element,
-      attribute: this.options.name,
-      scope: event.scope,
-      expression
+  protected validateInput(event: AttributeParseEvent, expression: CombinedTextExpression): void {
+    event.context?.validateExpression?.({
+      attribute: this,
+      expression,
+      source: event.input.source,
+      location: event.input.location ?? AttributeInputLocation.ATTRIBUTE
     });
   }
 

@@ -1,5 +1,5 @@
+import { xmlInput } from './xmlInput';
 import { describe, expect, it, vi } from 'vitest';
-import { parse } from '@journeyapps/common-xml';
 import { numberType, textType } from '@ja-platform/parser-type-system';
 import { ConstantExpression, ConstantExpressionParser } from '@ja-platform/parser-expressions';
 import {
@@ -23,10 +23,12 @@ import {
 const scope = { getReference: () => null };
 
 function parseDocument(definition: Node, source: string) {
-  return definition.parseTree({
-    event: { element: parse(source).documentElement, helper: { pushError: vi.fn() } },
-    valueProviders: [new ConstantExpressionValueProvider()]
+  const parsed = definition.parseTree({
+    ...xmlInput(source),
+    report: vi.fn()
   });
+  parsed.setValueProviders([new ConstantExpressionValueProvider()]);
+  return parsed;
 }
 
 describe('Shared XML parsing', () => {

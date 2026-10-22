@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "@ja-platform/parser-core": "workspace:*",
+    "@ja-platform/parser-document-xml": "workspace:*",
     "@ja-platform/parser-expressions": "workspace:*",
     "@ja-platform/parser-schema": "workspace:*",
     "@ja-platform/parser-type-system": "workspace:*",

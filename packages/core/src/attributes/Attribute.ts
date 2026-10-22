@@ -1,6 +1,8 @@
-import { AttributeParseEvent, AttributeParseInput } from '../AttributeParseEvent';
-import { XMLParseEvent } from '../XMLParseEvent';
-import * as xml from '@journeyapps/common-xml';
+import { AttributeInputKind } from '../input/AttributeInput';
+import type { NodeInput } from '../input/NodeInput';
+import type { AttributeInput } from '../input/AttributeInput';
+import type { AttributeParseContext } from '../input/AttributeParseContext';
+import { AttributeParseEvent } from '../AttributeParseEvent';
 import {
   AbstractExpression,
   ExpressionParser,
@@ -146,9 +148,9 @@ export class Attribute<G extends AttributeGenerics = AttributeGenerics> extends 
     };
   }
 
-  protected getParsedValue(event: AttributeParseEvent, _parseContext?: Record<string, any>): G['Value'] {
+  protected getParsedValue(event: AttributeParseEvent): G['Value'] {
     return (
-      event.helper.parseAttributeExpression?.({ attribute: this, source: event.input.value }) ??
+      event.context?.parseAttributeExpression?.({ attribute: this, source: event.input.value }) ??
       this.options.syntax.parse(event.input.value)
     );
   }
@@ -171,38 +173,44 @@ export class Attribute<G extends AttributeGenerics = AttributeGenerics> extends 
     return new ParsedAttribute(options);
   }
 
-  protected getInput(event: XMLParseEvent<ParsedNode>): AttributeParseInput {
-    return {
-      value: event.element == null ? null : xml.getAttribute(event.element, this.options.name),
-      source: event.element == null ? null : (xml.attributeNode(event.element, this.options.name) ?? event.element)
-    };
+  protected getInput(node?: NodeInput): AttributeInput | undefined {
+    return node?.attribute(this.name);
   }
 
-  parse(event: XMLParseEvent<ParsedNode>, parseContext: Record<string, any> = {}) {
-    const input = this.getInput(event);
+  parse(node?: NodeInput, context?: AttributeParseContext) {
+    return this.parseInput(this.getInput(node), context);
+  }
+
+  /** Instantiate an attribute from document input, or from its definition alone. */
+  parseInput(input?: AttributeInput, context?: AttributeParseContext) {
     let expression: G['Value'] = null;
-    let failure: SyntaxError;
+    let failure: SyntaxError | undefined;
     try {
-      if (input.value != null) {
-        expression = this.getParsedValue({ ...event, input: { ...input, value: input.value } }, parseContext);
+      if (input?.kind === AttributeInputKind.LITERAL) {
+        const valueType = this.options.valueType;
+        if (!valueType) {
+          throw new SyntaxError(`Attribute ${this.name} does not support native literal input`);
+        }
+        expression = new ConstantExpression({
+          value: valueType.parse(input.value),
+          valueType,
+          tokens: [],
+          start: input.source?.range.start ?? 0
+        });
+      } else if (input) {
+        expression = this.getParsedValue({ input, context });
       }
     } catch (error) {
-      if (!(error instanceof SyntaxError)) {
-        throw error;
-      }
+      if (!(error instanceof SyntaxError)) throw error;
       failure = error;
     }
-
-    const parsedAttribute = this.createParsedAttribute({
+    const parsed = this.createParsedAttribute({
       definition: this,
-      event,
       expression,
-      parseContext
+      input,
+      reportError: (diagnostic) => context?.report(diagnostic)
     });
-
-    if (failure) {
-      parsedAttribute.pushError({ message: failure.message, element: input.source });
-    }
-    return parsedAttribute;
+    if (failure) parsed.pushError({ message: failure.message });
+    return parsed;
   }
 }

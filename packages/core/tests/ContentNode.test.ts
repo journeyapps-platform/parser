@@ -1,3 +1,5 @@
+import { XMLSourceReference } from '../../document-xml/src/XMLSourceReference';
+import { xmlInput } from './xmlInput';
 import {
   EvaluatedExpressionParser,
   FormatStringExpressionParser,
@@ -6,51 +8,46 @@ import {
 } from '@ja-platform/parser-expressions';
 import { numberType, booleanType, textType } from '@ja-platform/parser-type-system';
 import { expect, expectTypeOf, it } from 'vitest';
-import { parse } from '@journeyapps/common-xml';
 import { Node, ContentNode, ContentTextAttribute, ConstantExpressionValueProvider } from '../src';
 
 it('parses element content using the declared value type and serializes its original text', () => {
   const definition = new ContentNode({ name: 'timeout', valueType: numberType });
-  const element = parse('<timeout content="99">30</timeout>').documentElement;
+  const { input } = xmlInput('<timeout content="99">30</timeout>');
   const node = definition.parseTree({
-    event: {
-      element,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    input,
+    scope: { getReference: () => null },
+    report: () => {}
   });
 
   expect(node.content().raw()).toBe('30');
   expect(node.attribute('content').stringify()).toEqual({ isAttribute: false, value: '30' });
-  expect(node.attribute('content').sourceElement).toBe(element);
+  expect((node.attribute('content').input?.source as XMLSourceReference).element).toBe(
+    (input.source as XMLSourceReference).element
+  );
 });
 
 it('reports invalid typed content at the content element', () => {
   const definition = new ContentNode({ name: 'timeout', valueType: numberType });
-  const element = parse('<timeout>invalid</timeout>').documentElement;
+  const { input } = xmlInput('<timeout>invalid</timeout>');
   const node = definition.parseTree({
-    event: {
-      element,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    input,
+    scope: { getReference: () => null },
+    report: () => {}
   });
   const attribute = node.attribute('content');
 
   expect(attribute.expression()).toBeNull();
   expect(attribute.errors()).toHaveLength(1);
-  expect(attribute.sourceElement).toBe(element);
+  expect((attribute.input?.source as XMLSourceReference).element).toBe((input.source as XMLSourceReference).element);
 });
 
 it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to literal text for %j', (text) => {
   const definition = new ContentNode({ name: 'label', valueType: textType });
-  const element = parse(`<label>${text}</label>`).documentElement;
+  const { input } = xmlInput(`<label>${text}</label>`);
   const node = definition.parseTree({
-    event: {
-      element,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    input,
+    scope: { getReference: () => null },
+    report: () => {}
   });
   node.setValueProviders([new ConstantExpressionValueProvider()]);
   const value = node.valueTree();
@@ -64,13 +61,11 @@ it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to l
 it('uses content as the input for prefixed text without rewriting the source', () => {
   const definition = new Node({ name: 'label' });
   definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
-  const element = parse('<label>$:getLabel()</label>').documentElement;
+  const { input } = xmlInput('<label>$:getLabel()</label>');
   const node = definition.parseTree({
-    event: {
-      element,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    input,
+    scope: { getReference: () => null },
+    report: () => {}
   });
   const attribute = node.attribute('title');
 
@@ -78,20 +73,16 @@ it('uses content as the input for prefixed text without rewriting the source', (
   expect(node.content()).toBeInstanceOf(FunctionExpression);
   expect(node.content().raw()).toBe('$:getLabel()');
   expect(attribute.stringify()).toEqual({ isAttribute: false, value: '$:getLabel()' });
-  expect(attribute.sourceElement).toBe(element);
+  expect((attribute.input?.source as XMLSourceReference).element).toBe((input.source as XMLSourceReference).element);
 });
 
 it('parses explicit boolean content', () => {
   const definition = new ContentNode({ name: 'enabled', valueType: booleanType });
-  const element = parse('<enabled>false</enabled>').documentElement;
+  const { input } = xmlInput('<enabled>false</enabled>');
   const node = definition.parseTree({
-    event: {
-      element,
-      scope: { getReference: () => null },
-      helper: {
-        pushError: () => {}
-      }
-    }
+    input,
+    scope: { getReference: () => null },
+    report: () => {}
   });
   expectTypeOf(node.content()).toEqualTypeOf<ConstantExpression<boolean> | undefined>();
   expect(node.content().value()).toBe(false);
@@ -105,11 +96,9 @@ it('accepts explicitly selected evaluated syntax while retaining its source and 
     syntax: new EvaluatedExpressionParser()
   });
   const node = definition.parseTree({
-    event: {
-      element: parse('<timeout>$:getTimeout()</timeout>').documentElement,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    ...xmlInput('<timeout>$:getTimeout()</timeout>'),
+    scope: { getReference: () => null },
+    report: () => {}
   });
   expect(node.content().code()).toBe('getTimeout()');
   expect(node.attribute('content').stringify()).toEqual({ isAttribute: false, value: '$:getTimeout()' });
@@ -117,7 +106,7 @@ it('accepts explicitly selected evaluated syntax while retaining its source and 
 });
 
 it('validates explicitly selected format syntax as element content', () => {
-  const element = parse('<label>Hello {name}</label>').documentElement;
+  const { input } = xmlInput('<label>Hello {name}</label>');
   const scope = { getReference: () => null };
   const validations: Array<[unknown, unknown, unknown]> = [];
   const definition = new ContentNode({
@@ -126,20 +115,16 @@ it('validates explicitly selected format syntax as element content', () => {
     syntax: new FormatStringExpressionParser()
   });
   const node = definition.parseTree({
-    event: {
-      element,
-      scope,
-      helper: {
-        pushError: () => {},
-        validateFormatContent: ({ element, scope, expression }) => validations.push([element, scope, expression]),
-        validateFormatAttribute: () => {
-          throw new Error('Unexpected attribute validation');
-        }
-      }
+    input,
+    scope,
+    report: () => {},
+    validateExpression: ({ source, location, expression }) => {
+      expect(location).toBe('content');
+      validations.push([(source as XMLSourceReference).element, scope, expression]);
     }
   });
   expect(validations).toHaveLength(1);
-  expect(validations[0][0]).toBe(element);
+  expect(validations[0][0]).toBe((input.source as XMLSourceReference).element);
   expect(validations[0][1]).toBe(scope);
   expect(validations[0][2]).toBe(node.content());
   expect(node.content().raw()).toBe('Hello {name}');
@@ -149,11 +134,9 @@ it('uses an explicit content-text attribute before the element content fallback'
   const definition = new Node({ name: 'label' });
   definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
   const node = definition.parseTree({
-    event: {
-      element: parse('<label title="$:getLabel()">Fallback</label>').documentElement,
-      scope: { getReference: () => null },
-      helper: { pushError: () => {} }
-    }
+    ...xmlInput('<label title="$:getLabel()">Fallback</label>'),
+    scope: { getReference: () => null },
+    report: () => {}
   });
   expect(node.content()).toBeUndefined();
   expect(node.attribute('title').stringify()).toEqual({ isAttribute: true, value: '$:getLabel()' });

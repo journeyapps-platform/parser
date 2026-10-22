@@ -2,7 +2,7 @@ import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
 import { ParsedNode } from '../parsed/ParsedNode';
 import { ParsedNodeShape } from '../parsed/ParsedNodeTypes';
 import { ParseTreeOptions, Node, NodeGenerics, NodeOptions } from './Node';
-import { XMLElement } from '@journeyapps/domparser/lib';
+import type { NodeInput } from '../input/NodeInput';
 import type { NodeValidationContext } from '../parsed/ParsedNode';
 
 export interface NodeAlternativesOptions extends Omit<NodeOptions, 'name'> {
@@ -36,17 +36,17 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
 
   parseChildrenInto({
     parent,
-    elements,
+    inputs,
     options
   }: {
     parent: ParsedNode;
-    elements: XMLElement[];
+    inputs: NodeInput[];
     options: ParseTreeOptions;
   }): void {
-    const matchingElements = elements.filter((element) => this.getMatchingAlternatives(element).length > 0);
+    const matchingInputs = inputs.filter((input) => this.getMatchingAlternatives(input).length > 0);
     parent.registerListener({
       postValidation: ({ context }) => {
-        this.validateAlternativeCount({ parent, matchingElements, context });
+        this.validateAlternativeCount({ parent, matchingInputs, context });
       }
     });
 
@@ -55,12 +55,12 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
       key: this.options.key
     });
 
-    matchingElements.forEach((element, index) => {
+    matchingInputs.forEach((input, index) => {
       const childKey = this.options.isMultiple ? `${index}` : this.options.key;
-      const parsedChild = this.parseAlternativeElement({
+      const parsedChild = this.parseAlternativeInput({
         parent,
         options,
-        element,
+        input,
         key: childKey
       });
       if (parsedChild) {
@@ -79,19 +79,19 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
     }
   }
 
-  private parseAlternativeElement({
+  private parseAlternativeInput({
     parent,
     options,
-    element,
+    input,
     key
   }: {
     parent: ParsedNode;
     options: ParseTreeOptions;
-    element: XMLElement;
+    input: NodeInput;
     key: string;
   }): ParsedNode | ParsedArrayNode | null {
-    for (const definition of this.getMatchingAlternatives(element)) {
-      const child = definition.parseElement({ parent, options, element, key });
+    for (const definition of this.getMatchingAlternatives(input)) {
+      const child = definition.parseInput({ parent, options, input, key });
       if (child) {
         if (definition.options.isMultiple) {
           const arrayNode = new ParsedArrayNode({
@@ -109,27 +109,27 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
     return null;
   }
 
-  private getMatchingAlternatives(element: XMLElement): Node<any>[] {
-    return this.alternatives.filter((alternative) => alternative.options.name === element.tagName);
+  private getMatchingAlternatives(input: NodeInput): Node<any>[] {
+    return this.alternatives.filter((alternative) => alternative.options.name === input.name);
   }
 
   private validateAlternativeCount({
     parent,
-    matchingElements,
+    matchingInputs,
     context
   }: {
     parent: ParsedNode;
-    matchingElements: XMLElement[];
+    matchingInputs: NodeInput[];
     context: NodeValidationContext;
   }): void {
-    if (this.options.isRequired && matchingElements.length === 0) {
+    if (this.options.isRequired && matchingInputs.length === 0) {
       context.report({
         message: `<${parent.definition.options.name}> must contain at least one '${this.options.key}' child`
       });
       return;
     }
 
-    if (this.exclusive && matchingElements.length > 1) {
+    if (this.exclusive && matchingInputs.length > 1) {
       context.report({
         message: `<${parent.definition.options.name}> can only contain one '${this.options.key}' child`
       });
@@ -137,13 +137,13 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
     }
 
     this.nodes.forEach((definition) => {
-      const matchingDefinitionElements = matchingElements.filter((element) =>
-        this.getMatchingAlternatives(element).some((alternative) => alternative === definition)
+      const matchingDefinitionInputs = matchingInputs.filter((input) =>
+        this.getMatchingAlternatives(input).some((alternative) => alternative === definition)
       );
       this.validateDefinitionCount({
         parent,
         definition,
-        matchingElements: matchingDefinitionElements,
+        matchingInputs: matchingDefinitionInputs,
         context
       });
     });
@@ -152,27 +152,27 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
   private validateDefinitionCount({
     parent,
     definition,
-    matchingElements,
+    matchingInputs,
     context
   }: {
     parent: ParsedNode;
     definition: Node;
-    matchingElements: XMLElement[];
+    matchingInputs: NodeInput[];
     context: NodeValidationContext;
   }): void {
     if (definition.options.isRequired) {
-      if (!definition.options.isMultiple && matchingElements.length !== 1) {
+      if (!definition.options.isMultiple && matchingInputs.length !== 1) {
         context.report({
           message: `<${parent.definition.options.name}> must contain exactly one '<${definition.options.name}/>'`
         });
       }
 
-      if (definition.options.isMultiple && matchingElements.length === 0) {
+      if (definition.options.isMultiple && matchingInputs.length === 0) {
         context.report({
           message: `<${parent.definition.options.name}> must contain at least one '<${definition.options.name}/>'`
         });
       }
-    } else if (!definition.options.isMultiple && matchingElements.length > 1) {
+    } else if (!definition.options.isMultiple && matchingInputs.length > 1) {
       context.report({
         message: `<${parent.definition.options.name}> cannot contain more than one '<${definition.options.name}/>'`
       });

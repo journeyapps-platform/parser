@@ -1,9 +1,9 @@
+import { xmlInput } from './xmlInput';
 import { describe, expect, it, vi } from 'vitest';
 import { booleanType } from '@ja-platform/parser-type-system';
-import { parse } from '@journeyapps/common-xml';
 import {
   AbstractValueProvider,
-  XMLParseEvent,
+  ParseEvent,
   ParsedAttribute,
   ParsedNode,
   ParsedProviderValue,
@@ -43,12 +43,12 @@ class MutableProvider extends AbstractValueProvider {
 function setup(defaultValue: unknown = 'default') {
   const definition = new Node({ name: 'item' });
   definition.addAttribute(new Attribute(Attribute.TYPE, { name: 'value', defaultValue }));
-  const event: XMLParseEvent<ParsedNode> = {
-    element: parse('<item />').documentElement,
-    scope: {} as XMLParseEvent<ParsedNode>['scope'],
-    helper: { pushError: () => {} }
+  const event: ParseEvent = {
+    ...xmlInput('<item />'),
+    scope: {} as ParseEvent['scope'],
+    report: () => {}
   };
-  const node = definition.parseTree({ event });
+  const node = definition.parseTree(event);
   return { node, attribute: node.attribute('value') };
 }
 
@@ -57,11 +57,9 @@ describe('Parsed values', () => {
     const definition = new Node({ name: 'item' });
     definition.addAttribute(new NumberAttribute({ name: 'count' }));
     const node = definition.parseTree({
-      event: {
-        element: parse('<item count="$:count" />').documentElement,
-        scope: {} as XMLParseEvent<ParsedNode>['scope'],
-        helper: { pushError: () => {} }
-      }
+      ...xmlInput('<item count="$:count" />'),
+      scope: {} as ParseEvent['scope'],
+      report: () => {}
     });
     const attribute = node.attribute('count');
     const provider = new MutableProvider('045');
@@ -78,11 +76,9 @@ describe('Parsed values', () => {
     const definition = new Node({ name: 'item' });
     definition.addAttribute(new TextAttribute({ name: 'label' }));
     const node = definition.parseTree({
-      event: {
-        element: parse(`<item label="${source}" />`).documentElement,
-        scope: {} as XMLParseEvent<ParsedNode>['scope'],
-        helper: { pushError: () => {} }
-      }
+      ...xmlInput(`<item label="${source}" />`),
+      scope: {} as ParseEvent['scope'],
+      report: () => {}
     });
     const attribute = node.attribute('label');
     const provider = new MutableProvider(45);
@@ -106,11 +102,9 @@ describe('Parsed values', () => {
     const definition = new Node({ name: 'item' });
     definition.addAttribute(new BooleanAttribute({ name: 'show-if', key: 'showIf' }));
     const node = definition.parseTree({
-      event: {
-        element: parse('<item show-if="$:getValue()" />').documentElement,
-        scope: {} as XMLParseEvent<ParsedNode>['scope'],
-        helper: { pushError: () => {} }
-      }
+      ...xmlInput('<item show-if="$:getValue()" />'),
+      scope: {} as ParseEvent['scope'],
+      report: () => {}
     });
     const value = new ParsedValue<boolean>(node.attribute('showIf'), [new MutableProvider(input)]);
     expect(value.current).toBe(expected);
@@ -127,11 +121,9 @@ describe('Parsed values', () => {
     const definition = new Node({ name: 'item' });
     definition.addAttribute(new TextArrayAttribute({ name: 'tags', delimiter: ';' }));
     const node = definition.parseTree({
-      event: {
-        element: parse('<item tags="first;second" />').documentElement,
-        scope: {} as XMLParseEvent<ParsedNode>['scope'],
-        helper: { pushError: () => {} }
-      }
+      ...xmlInput('<item tags="first;second" />'),
+      scope: {} as ParseEvent['scope'],
+      report: () => {}
     });
     const attribute = node.attribute('tags');
     const provider = new MutableProvider('first;second');

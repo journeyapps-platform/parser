@@ -1,3 +1,4 @@
+import { xmlInput } from './xmlInput';
 import { XmlSchema as Schema } from '../src';
 import { loadSchemaXml } from '../src';
 
@@ -5,7 +6,6 @@ import { SchemaModelType, SchemaObjectDisplayExpression, TextType } from '@ja-pl
 import { SchemaFieldNode } from '../src/nodes/SchemaFieldNode';
 import { SchemaModelNode } from '../src/nodes/SchemaModelNode';
 import { describe, it, expect } from 'vitest';
-import * as blackmontapp_xml from '@journeyapps/common-xml';
 
 // @ts-ignore
 import schema3_xml from './fixtures/schema3.xml?raw';
@@ -14,19 +14,15 @@ import schema3BadgeCountXml from './fixtures/schema3-badge-count.xml?raw';
 
 describe('xml schema parsing (domparser)', () => {
   function xml(text: string) {
-    return blackmontapp_xml.parse(text).documentElement;
+    return xmlInput(text);
   }
 
-  function parseField(element: ReturnType<typeof xml>) {
-    return new SchemaFieldNode()
-      .parseTree({ event: { element, helper: { pushError: () => {} } } })
-      .toField(new Schema());
+  function parseField(input: ReturnType<typeof xml>) {
+    return new SchemaFieldNode().parseTree({ ...input, report: () => {} }).toField(new Schema());
   }
 
-  function parseModel(element: ReturnType<typeof xml>) {
-    return new SchemaModelNode()
-      .parseTree({ event: { element, helper: { pushError: () => {} } } })
-      .toModel(new Schema());
+  function parseModel(input: ReturnType<typeof xml>) {
+    return new SchemaModelNode().parseTree({ ...input, report: () => {} }).toModel(new Schema());
   }
 
   it('should load a text attribute', () => {

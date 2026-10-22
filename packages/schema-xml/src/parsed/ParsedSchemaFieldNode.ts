@@ -1,3 +1,4 @@
+import { sourceElement } from './sourceElement';
 import { ParsedNode } from '@ja-platform/parser-core';
 import { XmlSchema as Schema } from '../XmlSchema';
 import { textSubtypeSpecs } from '@ja-platform/parser-schema';
@@ -12,7 +13,7 @@ export class ParsedSchemaFieldNode extends ParsedNode<SchemaFieldShape> {
     const field = schema.field(this.attrExpression('name').value(), type);
     field.label = this.attrExpression('label').value();
     field.sourceTypeName = declaration.raw();
-    field.sourceElement = this.sourceElement;
+    field.sourceElement = sourceElement(this);
     field.parsedNode = this;
 
     if (TextType.isInstanceOf(type)) {
@@ -42,7 +43,7 @@ export class ParsedSchemaFieldNode extends ParsedNode<SchemaFieldShape> {
       for (const [index, option] of options.entries()) {
         const key = option.attrExpression('key')?.value() ?? (integerKeys ? largest + 1 : null);
         const choice = type.addOption(key, option.attrExpression('label').value(), index);
-        field.optionSources.set(String(choice.value), option.sourceElement);
+        field.optionSources.set(String(choice.value), sourceElement(option));
         if (integerKeys) largest = Math.max(largest, key as number);
       }
       if (declaration.primitive === PrimitiveType.BOOLEAN && options.length === 0) {

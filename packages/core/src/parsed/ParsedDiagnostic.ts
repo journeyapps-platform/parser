@@ -1,7 +1,11 @@
-import type { XMLDiagnostic as ParsedDiagnostic } from '@journeyapps/common-xml';
+import type { SourceReference } from '../source/SourceReference';
 import type { ExpressionDiagnostic } from '@ja-platform/parser-expressions';
 
-export type { XMLDiagnostic as ParsedDiagnostic } from '@journeyapps/common-xml';
+export interface ParsedDiagnostic {
+  message: string;
+  type?: 'error' | 'warning';
+  source?: SourceReference;
+}
 
 export interface ParsedValidationDiagnostic extends ParsedDiagnostic {
   token?: ExpressionDiagnostic['token'];
@@ -10,8 +14,9 @@ export interface ParsedValidationDiagnostic extends ParsedDiagnostic {
 export class ParsedDiagnosticStore {
   private readonly diagnostics: ParsedDiagnostic[] = [];
 
-  pushError({ message, element, type }: ParsedDiagnostic): ParsedDiagnostic {
-    const diagnostic = { element, message, type };
+  pushError({ message, type, source }: ParsedDiagnostic): ParsedDiagnostic {
+    const diagnostic: ParsedDiagnostic = { message, type };
+    if (source) diagnostic.source = source;
     this.diagnostics.push(diagnostic);
     return diagnostic;
   }

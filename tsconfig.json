@@ -18,6 +18,12 @@
     },
     {
       "path": "./packages/schema-xml"
+    },
+    {
+      "path": "./packages/document-xml"
+    },
+    {
+      "path": "./packages/document-json"
     }
   ]
 }

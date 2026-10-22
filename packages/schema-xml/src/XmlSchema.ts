@@ -1,7 +1,7 @@
 import { Schema } from '@ja-platform/parser-schema';
 import type { Type } from '@ja-platform/parser-type-system';
-import type { ValidationError } from '@journeyapps/common-xml';
-import type { XMLElement, XMLError } from '@journeyapps/domparser/types';
+import type { ParsedDiagnostic } from '@ja-platform/parser-core';
+import type { XMLElement } from '@journeyapps/domparser/types';
 import type { ParsedSchemaNode } from './parsed/ParsedSchemaNode';
 import { XmlField } from './XmlField';
 import { XmlParam } from './XmlParam';
@@ -13,7 +13,7 @@ import { XmlModel } from './XmlModel';
 export class XmlSchema extends Schema {
   parsedNode?: ParsedSchemaNode;
   sourceElement?: XMLElement;
-  errors: (ValidationError | XMLError)[] = [];
+  errors: ParsedDiagnostic[] = [];
   declare objects: Record<string, XmlModel>;
 
   field<T extends Type = Type>(name?: string, type?: T | string): XmlField<T> {

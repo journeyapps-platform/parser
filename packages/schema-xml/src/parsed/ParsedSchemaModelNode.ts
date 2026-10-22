@@ -1,3 +1,4 @@
+import { sourceElement } from './sourceElement';
 import { ParsedNode } from '@ja-platform/parser-core';
 import { XmlSchema as Schema } from '../XmlSchema';
 import { IndexDatabase } from '@ja-platform/parser-schema';
@@ -9,7 +10,7 @@ export class ParsedSchemaModelNode extends ParsedNode<SchemaModelShape> {
   toModel(schema: Schema): SchemaModelType {
     const model = schema.newObjectType(this.attrExpression('name').value());
     model.label = this.attrExpression('label').value();
-    model.sourceElement = this.sourceElement;
+    model.sourceElement = sourceElement(this);
     model.parsedNode = this;
     const fields = this.node('fields')
       .nodes()
@@ -18,7 +19,7 @@ export class ParsedSchemaModelNode extends ParsedNode<SchemaModelShape> {
 
     const display = this.node<SchemaModelShape['display']>('display');
     model.displayFormat = display?.attrExpression('format') ?? null;
-    model.displaySource = display?.sourceElement;
+    model.displaySource = sourceElement(display);
     model.allIndexes = this.node('indexes')
       .nodes()
       .map((index) => {
@@ -55,7 +56,7 @@ export class ParsedSchemaModelNode extends ParsedNode<SchemaModelShape> {
           type,
           receiver,
           action,
-          sourceElement: webhook.sourceElement,
+          sourceElement: sourceElement(webhook),
           fields: webhook
             .node('fields')
             .nodes()
@@ -76,7 +77,7 @@ export class ParsedSchemaModelNode extends ParsedNode<SchemaModelShape> {
       const type = declaration.attrExpression('model').value();
       const name = declaration.attrExpression('name')?.value() ?? type;
       model.addBelongsTo({ schema, name, type });
-      model.belongsToVars[name].sourceElement = declaration.sourceElement;
+      model.belongsToVars[name].sourceElement = sourceElement(declaration);
     }
   }
 
@@ -101,7 +102,7 @@ export class ParsedSchemaModelNode extends ParsedNode<SchemaModelShape> {
       relationship.foreignName = name;
       model.hasMany[name] = relationship;
       const variable = schema.field(name, new QueryType(target));
-      variable.sourceElement = declaration.sourceElement;
+      variable.sourceElement = sourceElement(declaration);
       model.hasManyVars[name] = variable;
     }
   }

@@ -47,10 +47,10 @@ export class ParsedArrayNode<Child extends ParsedArrayNodeChild = ParsedNode<any
     return this;
   }
 
-  pushError({ message, element, type }: ParsedDiagnostic): ParsedDiagnostic {
-    const diagnostic = this.diagnostics.pushError({ message, element, type });
-    if (element) {
-      this.getParent<ParsedNode>()?.reportDiagnostic({ element, message, type });
+  pushError({ message, source, type }: ParsedDiagnostic): ParsedDiagnostic {
+    const diagnostic = this.diagnostics.pushError({ message, source, type });
+    if (source) {
+      this.getParent<ParsedNode>()?.reportDiagnostic({ source, message, type });
     }
     return diagnostic;
   }

@@ -1,32 +1,29 @@
+import type { AttributeInput } from '../input/AttributeInput';
 import { TreeEntity } from '@journeyapps/common-tree';
-import { XMLParseEvent } from '../XMLParseEvent';
-import { XMLPositional } from '@journeyapps/common-xml';
 import { Attribute } from '../attributes/Attribute';
 import { ParsedDiagnosticStore, ParsedDiagnostic } from './ParsedDiagnostic';
 import { ParsedNode } from './ParsedNode';
 
 export interface ParsedAttributeOptions<Expression = any, Definition extends Attribute = Attribute> {
   definition: Definition;
-  event: XMLParseEvent<ParsedNode>;
+  input?: AttributeInput;
+  reportError?: (diagnostic: ParsedDiagnostic) => void;
   expression: Expression;
-  parseContext?: Record<string, any>;
 }
 
 export class ParsedAttribute<Expression = any, Definition extends Attribute = Attribute> extends TreeEntity {
   public readonly definition: Definition;
   private expressionValue: Expression;
-  public readonly sourceElement: XMLPositional;
-  public readonly parseContext?: Record<string, any>;
+  public readonly input?: AttributeInput;
   private readonly diagnostics = new ParsedDiagnosticStore();
   private readonly reportError: (diagnostic: ParsedDiagnostic) => void;
 
   constructor(options: ParsedAttributeOptions<Expression, Definition>) {
     super(options.definition.options.key);
     this.definition = options.definition;
-    this.sourceElement = options.event.element;
-    this.reportError = options.event.helper.pushError;
+    this.input = options.input;
+    this.reportError = options.reportError ?? (() => undefined);
     this.expressionValue = options.expression;
-    this.parseContext = options.parseContext;
   }
 
   get name(): string {
@@ -41,9 +38,9 @@ export class ParsedAttribute<Expression = any, Definition extends Attribute = At
     this.expressionValue = value;
   }
 
-  pushError({ message, element = this.sourceElement, type }: ParsedDiagnostic): ParsedDiagnostic {
-    const diagnostic = this.diagnostics.pushError({ message, element, type });
-    this.reportError({ element, message, type });
+  pushError({ message, type, source = this.input?.source }: ParsedDiagnostic): ParsedDiagnostic {
+    const diagnostic = this.diagnostics.pushError({ message, type, source });
+    this.reportError(diagnostic);
     return diagnostic;
   }
 

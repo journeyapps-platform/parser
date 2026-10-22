@@ -1,5 +1,5 @@
 export * from './AttributeParseEvent';
-export * from './XMLParseEvent';
+export * from './ParseEvent';
 export * from './attributes/ConditionType';
 export * from './attributes/Attribute';
 export * from './attributes/BooleanAttribute';
@@ -32,3 +32,8 @@ export * from './values/ParsedNodeValues';
 export * from './values/ParsedProviderValue';
 export * from './values/ParsedValue';
 export * from './utils/types/valueOf';
+
+export * from './source/SourceReference';
+export * from './input/AttributeInput';
+export * from './input/NodeInput';
+export * from './input/AttributeParseContext';

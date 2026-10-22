@@ -59,7 +59,7 @@ export class NumberAttribute extends Attribute<NumberAttributeGenerics> {
               if (value < min || value > max) {
                 context.report({
                   token: expression.tokens[0],
-                  message: `${parsed.sourceElement.nodeName}: Attribute ${name}="${expression.raw()}" is outside of allowable range [${min}, ${max}].`
+                  message: `${parsed.definition.name}: Attribute ${name}="${expression.raw()}" is outside of allowable range [${min}, ${max}].`
                 });
               }
             }
