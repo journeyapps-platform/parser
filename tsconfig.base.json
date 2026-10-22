@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": ["dom", "esnext"],
+    "composite": true,
+    "strict": false,
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "stripInternal": true,
+    "incremental": true,
+    "inlineSources": true,
+    "esModuleInterop": true
+  }
+}

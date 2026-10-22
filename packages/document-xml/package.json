@@ -1,0 +1,30 @@
+{
+  "name": "@ja-platform/parser-document-xml",
+  "version": "0.0.0",
+  "description": "XML document inputs for parser definitions",
+  "main": "./dist/index.js",
+  "types": "./dist/@types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run --configLoader runner --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@ja-platform/parser-core": "workspace:*",
+    "@journeyapps/common-xml": "0.0.0-dev-20261021193021",
+    "@journeyapps/domparser": "^0.4.1"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/journeyapps-platform/parser.git",
+    "directory": "packages/document-xml"
+  }
+}

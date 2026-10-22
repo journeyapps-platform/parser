@@ -1,0 +1,29 @@
+{
+  "name": "@ja-platform/parser-document-json",
+  "version": "0.0.0",
+  "description": "JSON document inputs for parser definitions",
+  "main": "./dist/index.js",
+  "types": "./dist/@types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run --configLoader runner --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@ja-platform/parser-core": "workspace:*",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/journeyapps-platform/parser.git",
+    "directory": "packages/document-json"
+  }
+}
