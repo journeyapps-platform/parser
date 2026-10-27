@@ -1,5 +1,5 @@
-import { AttributeInputKind } from '@ja-platform/parser-core';
-import type { AttributeInput, NodeInput } from '@ja-platform/parser-core';
+import { AttributeInputKind, NodeInputKind } from '@ja-platform/parser-core';
+import type { AttributeInput, NodeInput, NodeInputSelector, NodeInputSelection } from '@ja-platform/parser-core';
 import * as xml from '@journeyapps/common-xml';
 import { DOMParser } from '@journeyapps/domparser';
 import { XMLSourceReference } from './XMLSourceReference';
@@ -9,6 +9,7 @@ type Element = ReturnType<typeof xml.parse>['documentElement'];
 /** XML extraction lives here; attribute definitions only interpret its inputs. */
 export class XMLNodeInput implements NodeInput {
   readonly source: XMLSourceReference;
+  readonly kind = NodeInputKind.ELEMENT;
 
   constructor(
     private readonly element: Element,
@@ -39,6 +40,16 @@ export class XMLNodeInput implements NodeInput {
     const value = this.element.textContent;
     if (value == null) return undefined;
     return { kind: AttributeInputKind.TEXT, value, source: this.source };
+  }
+
+  recordEntries(): NodeInputSelection {
+    return { inputs: Array.from(this.children()), present: true, source: this.source, diagnostics: [] };
+  }
+
+  selectChildren(selectors: readonly NodeInputSelector[]): NodeInputSelection {
+    const names = new Set(selectors.map((selector) => selector.name));
+    const inputs = Array.from(this.children()).filter((child) => names.has(child.name));
+    return { inputs, present: inputs.length > 0, source: this.source, diagnostics: [] };
   }
 
   *children(): Iterable<XMLNodeInput> {

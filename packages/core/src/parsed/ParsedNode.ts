@@ -143,6 +143,9 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
     const attributes = this.collectAttributeValues(this.attributes().map((attribute) => attribute.getKey()));
     const sources: Array<readonly [string, ParsedNodeValuesLike<unknown>]> = [...attributes];
     for (const [key, child] of this.childrenByKey) {
+      if (child instanceof ParsedArrayNode && child.inputPresent === false && child.definition.defaultValue == null) {
+        continue;
+      }
       sources.push([key, child.valueTree()]);
     }
     return new ParsedNodeValues<Value>(

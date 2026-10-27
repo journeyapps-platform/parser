@@ -2,7 +2,7 @@ import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
 import { ParsedNode } from '../parsed/ParsedNode';
 import { ParsedNodeShape } from '../parsed/ParsedNodeTypes';
 import { ParseTreeOptions, Node, NodeGenerics, NodeOptions } from './Node';
-import type { NodeInput } from '../input/NodeInput';
+import type { NodeInput, NodeInputSelector, NodeInputSelection } from '../input/NodeInput';
 import type { NodeValidationContext } from '../parsed/ParsedNode';
 
 export interface NodeAlternativesOptions extends Omit<NodeOptions, 'name'> {
@@ -14,6 +14,7 @@ export interface NodeAlternativesOptions extends Omit<NodeOptions, 'name'> {
 export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> extends Node<NodeGenerics<Shape>> {
   private readonly exclusiveValue: boolean;
   private readonly alternatives: Node<any>[];
+  private readonly selectors: NodeInputSelector[];
 
   constructor(options: NodeAlternativesOptions) {
     super({
@@ -23,6 +24,8 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
     });
     this.exclusiveValue = options.exclusive ?? false;
     this.alternatives = options.alternatives;
+    // Keep each alternative's input key before assigning their shared output key.
+    this.selectors = this.alternatives.flatMap((alternative) => alternative.inputSelectors);
 
     this.alternatives.forEach((alternative) => {
       alternative.options.key = options.key;
@@ -34,14 +37,20 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
     return this.exclusiveValue;
   }
 
+  get inputSelectors(): readonly NodeInputSelector[] {
+    return this.selectors;
+  }
+
   parseChildrenInto({
     parent,
     inputs,
-    options
+    options,
+    selection
   }: {
     parent: ParsedNode;
     inputs: NodeInput[];
     options: ParseTreeOptions;
+    selection?: NodeInputSelection;
   }): void {
     const matchingInputs = inputs.filter((input) => this.getMatchingAlternatives(input).length > 0);
     parent.registerListener({
@@ -52,7 +61,9 @@ export class NodeAlternatives<Shape extends ParsedNodeShape = ParsedNodeShape> e
 
     const arrayNode = new ParsedArrayNode({
       definition: this,
-      key: this.options.key
+      key: this.options.key,
+      inputPresent: selection?.present,
+      source: selection?.source
     });
 
     matchingInputs.forEach((input, index) => {

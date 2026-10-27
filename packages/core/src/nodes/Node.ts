@@ -1,6 +1,6 @@
 import { ParseEvent } from '../ParseEvent';
 import { AttributeInputLocation } from '../input/AttributeInput';
-import type { NodeInput } from '../input/NodeInput';
+import type { NodeInput, NodeInputSelector, NodeInputSelection } from '../input/NodeInput';
 import * as _ from 'lodash';
 import { Attribute } from '../attributes/Attribute';
 import { ContentTextAttribute } from '../attributes/ContentTextAttribute';
@@ -76,8 +76,11 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
   nodes: Node<any>[];
 
   constructor(options: G['Options']) {
+    let defaultValue = options.defaultValue;
+    if (defaultValue === undefined && options.isMultiple) defaultValue = [];
     super({
       ...options,
+      defaultValue,
       // templates should always be an empty array
       templates: options.templates || []
     });
@@ -314,21 +317,31 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     this.fireListeners((listener) => listener.preChildrenParse?.({ ...event, parsedNode: parsed }));
 
     if (!event.input) return;
-    const childInputs = Array.from(event.input.children());
+    const attributeNames = this.attributes
+      .filter((attribute) => !(attribute instanceof ContentTextAttribute))
+      .map((attribute) => attribute.name);
 
     this.nodes.forEach((definition) => {
-      definition.parseChildrenInto({ parent: parsed, inputs: childInputs, options });
+      const selection = event.input.selectChildren(definition.inputSelectors, attributeNames);
+      selection.diagnostics.forEach((diagnostic) => parsed.pushError(diagnostic));
+      definition.parseChildrenInto({ parent: parsed, inputs: selection.inputs, options, selection });
     });
+  }
+
+  get inputSelectors(): readonly NodeInputSelector[] {
+    return [{ name: this.name, key: this.options.key, isMultiple: this.options.isMultiple }];
   }
 
   parseChildrenInto({
     parent,
     inputs,
-    options
+    options,
+    selection
   }: {
     parent: ParsedNode;
     inputs: NodeInput[];
     options: ParseTreeOptions;
+    selection?: NodeInputSelection;
   }): void {
     const matchingInputs = inputs.filter((input) => input.name === this.options.name);
     parent.registerListener({
@@ -340,7 +353,9 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     if (this.options.isMultiple) {
       const arrayNode = new ParsedArrayNode({
         definition: this,
-        key: this.options.key
+        key: this.options.key,
+        inputPresent: selection?.present,
+        source: selection?.source
       });
 
       matchingInputs.forEach((input, index) => {
