@@ -7,6 +7,7 @@ describe('XML document input', () => {
     const text = '<view\n size="12"><button label="Save" /></view>';
     const input = XMLNodeInput.parse(text);
     expect(input.name).toBe('view');
+    expect([...input.attributeNames()]).toEqual(['size']);
     expect(input.attribute('missing')).toBeUndefined();
     expect([...input.children()].map((child) => child.name)).toEqual(['button']);
     const size = input.attribute('size');

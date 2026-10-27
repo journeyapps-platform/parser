@@ -29,6 +29,8 @@ export interface NodeInput {
   readonly kind: NodeInputKind;
   readonly name: string;
   readonly source?: SourceReference;
+  /** Names available through attribute(), including JSON object properties. */
+  attributeNames(): Iterable<string>;
   attribute(name: string): AttributeInput | undefined;
   content(): AttributeInput | undefined;
   children(): Iterable<NodeInput>;

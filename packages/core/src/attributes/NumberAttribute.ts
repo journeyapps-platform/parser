@@ -11,24 +11,30 @@ export interface NumberAttributeRange {
   max?: number;
 }
 
-export interface NumberAttributeOptions extends AttributeOptions<number, number> {
+export interface NumberAttributeOptions<Default = number> extends Omit<
+  AttributeOptions<Default, number>,
+  'loadingValue'
+> {
+  loadingValue?: number;
   range?: NumberAttributeRange;
 }
 
 export interface NumberAttributeGenerics<
-  Options extends NumberAttributeOptions = NumberAttributeOptions
+  Default = number,
+  Options extends NumberAttributeOptions<Default> = NumberAttributeOptions<Default>
 > extends AttributeGenerics {
   Options: Options;
   Value: CombinedNumberExpression | null;
   NormalizedValue: number;
 }
 
-export class NumberAttribute<Options extends NumberAttributeOptions = NumberAttributeOptions> extends Attribute<
-  NumberAttributeGenerics<Options>
-> {
+export class NumberAttribute<
+  Default = number,
+  Options extends NumberAttributeOptions<Default> = NumberAttributeOptions<Default>
+> extends Attribute<NumberAttributeGenerics<Default, Options>> {
   static TYPE = 'number-attribute';
 
-  static isInstanceOf(attr: Attribute): attr is NumberAttribute {
+  static isInstanceOf(attr: Attribute): attr is NumberAttribute<any, any> {
     return attr.type === NumberAttribute.TYPE;
   }
 

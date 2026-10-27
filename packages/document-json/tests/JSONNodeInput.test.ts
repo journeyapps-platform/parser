@@ -161,6 +161,9 @@ describe('JSON document input', () => {
     );
     const report = vi.fn();
     const input = JSONNodeInput.parse('{"delay":500,"title":"App","languages":["en","fr"]}');
+    expect([...input.attributeNames()]).toEqual(['delay', 'title', 'languages']);
+    expect([...JSONNodeInput.parse('[]').attributeNames()]).toEqual([]);
+    expect([...JSONNodeInput.parse('42').attributeNames()]).toEqual([]);
     const result = definition.parseTree({ input, report });
     result.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
     const values = result.valueTree();

@@ -26,6 +26,12 @@ export class XMLNodeInput implements NodeInput {
     return this.element.tagName;
   }
 
+  *attributeNames(): Iterable<string> {
+    for (let index = 0; index < this.element.attributes.length; index++) {
+      yield this.element.attributes[index].name;
+    }
+  }
+
   attribute(name: string): AttributeInput | undefined {
     const value = xml.getAttribute(this.element, name);
     if (value == null) return undefined;

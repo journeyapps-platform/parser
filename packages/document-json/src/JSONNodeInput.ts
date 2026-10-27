@@ -29,6 +29,11 @@ export class JSONNodeInput implements NodeInput {
     return new JSONNodeInput(node, name);
   }
 
+  *attributeNames(): Iterable<string> {
+    if (this.node.type !== 'object') return;
+    for (const property of this.node.children ?? []) yield property.children[0].value;
+  }
+
   attribute(name: string): AttributeInput | undefined {
     return this.input(findNodeAtLocation(this.node, [name]));
   }
