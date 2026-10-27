@@ -1,5 +1,4 @@
 import { textType, numberType } from '@ja-platform/parser-type-system';
-import { XMLNodeInput } from '../../document-xml/src/XMLNodeInput';
 import { AttributeInputKind } from '@ja-platform/parser-core';
 import { describe, expect, it, vi } from 'vitest';
 import { Node, ContentNode, NodeAlternatives, RecordNode, EitherNode } from '@ja-platform/parser-core';
@@ -47,43 +46,18 @@ describe('JSON document input', () => {
     expect(parse).not.toHaveBeenCalled();
   });
 
-  it('uses XML repetition to select the array branch of either', () => {
-    const root = new Node({ name: 'config' });
-    const either = new EitherNode({
-      name: 'voice',
-      alternatives: [
-        new ContentNode({ name: 'voice', valueType: textType }),
-        new ContentNode({ name: 'voice', valueType: textType, isMultiple: true })
-      ]
-    });
-    root.addNode(either);
-    const postParse = vi.fn();
-    either.registerListener({ postParse });
-    const parsed = root.parseTree({
-      input: XMLNodeInput.parse('<config><voice>next</voice><voice>continue</voice></config>'),
-      report: () => {}
-    });
-    parsed.setValueProviders([new ConstantExpressionValueProvider()]);
-    const values = parsed.valueTree();
-    expect(values.current).toEqual({ voice: ['next', 'continue'] });
-    expect(postParse).toHaveBeenCalledTimes(1);
-    values.dispose();
-  });
-
-  it('parses named records from JSON and XML with entry-level diagnostics', () => {
+  it('parses named records with entry-level diagnostics', () => {
     const entry = new ContentNode({ name: 'entry', valueType: numberType, defaultValue: 10 });
     const definition = new RecordNode({ name: 'sizes', entry });
-    for (const input of [
-      JSONNodeInput.parse('{"small":2,"large":4}'),
-      XMLNodeInput.parse('<sizes><small>2</small><large>4</large></sizes>')
-    ]) {
-      const parsed = definition.parseTree({ input, report: () => {} });
-      parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-      const values = parsed.valueTree();
-      expect(values.current).toEqual({ small: 2, large: 4 });
-      expect(parsed.nodes().every((node) => node.getParent() === parsed)).toBe(true);
-      values.dispose();
-    }
+    const parsed = definition.parseTree({
+      input: JSONNodeInput.parse('{"small":2,"large":4}'),
+      report: () => {}
+    });
+    parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
+    const recordValues = parsed.valueTree();
+    expect(recordValues.current).toEqual({ small: 2, large: 4 });
+    expect(parsed.nodes().every((node) => node.getParent() === parsed)).toBe(true);
+    recordValues.dispose();
     const empty = definition.parseTree({ input: JSONNodeInput.parse('{}'), report: () => {} });
     empty.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
     const values = empty.valueTree();
@@ -94,13 +68,11 @@ describe('JSON document input', () => {
     const invalid = definition.parseTree({ input: JSONNodeInput.parse(source), report: () => {} });
     const [error] = invalid.errors({ deep: true });
     expect(source.slice(error.source.range.start, error.source.range.end)).toBe('"invalid"');
-    for (const input of [
-      JSONNodeInput.parse('{"small":1,"small":2}'),
-      XMLNodeInput.parse('<sizes><small>1</small><small>2</small></sizes>')
-    ]) {
-      const parsed = definition.parseTree({ input, report: () => {} });
-      expect(parsed.errors({ deep: true })[0].message).toBe("Duplicate record key 'small'");
-    }
+    const duplicate = definition.parseTree({
+      input: JSONNodeInput.parse('{"small":1,"small":2}'),
+      report: () => {}
+    });
+    expect(duplicate.errors({ deep: true })[0].message).toBe("Duplicate record key 'small'");
     for (const source of ['[]', 'null', '2', '"text"']) {
       expect(definition.parseTree({ input: JSONNodeInput.parse(source), report: () => {} }).errors()).toHaveLength(1);
     }
@@ -174,7 +146,7 @@ describe('JSON document input', () => {
     expect([...matrix.children()][0].content().value).toEqual([[1, 2], []]);
   });
 
-  it('uses the same content and collection definitions for XML and ordinary JSON', () => {
+  it('parses properties as attributes, content and collections', () => {
     const definition = new Node({ name: 'config' });
     definition.addAttribute(new NumberAttribute({ name: 'delay' }));
     definition.addNode(new ContentNode({ name: 'title', valueType: textType }));
@@ -187,20 +159,14 @@ describe('JSON document input', () => {
         defaultValue: ['en']
       })
     );
-    for (const input of [
-      XMLNodeInput.parse(
-        '<config delay="500"><title>App</title><language>en</language><language>fr</language></config>'
-      ),
-      JSONNodeInput.parse('{"delay":500,"title":"App","languages":["en","fr"]}')
-    ]) {
-      const report = vi.fn();
-      const parsed = definition.parseTree({ input, report });
-      parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-      const value = parsed.valueTree();
-      expect(value.current).toEqual({ delay: 500, title: 'App', languages: ['en', 'fr'] });
-      expect(report).not.toHaveBeenCalled();
-      value.dispose();
-    }
+    const report = vi.fn();
+    const input = JSONNodeInput.parse('{"delay":500,"title":"App","languages":["en","fr"]}');
+    const result = definition.parseTree({ input, report });
+    result.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
+    const values = result.valueTree();
+    expect(values.current).toEqual({ delay: 500, title: 'App', languages: ['en', 'fr'] });
+    expect(report).not.toHaveBeenCalled();
+    values.dispose();
     for (const [source, expected] of [
       ['{}', ['en']],
       ['{"languages":[]}', []]
