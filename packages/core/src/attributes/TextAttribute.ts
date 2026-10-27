@@ -21,10 +21,13 @@ export interface TextAttributeGenerics<Value = string> extends AttributeGenerics
   NormalizedValue: Value;
 }
 
-export class TextAttribute<T extends TextAttributeGenerics<unknown> = TextAttributeGenerics> extends Attribute<T> {
+export class TextAttribute<
+  T extends TextAttributeGenerics<unknown> = TextAttributeGenerics,
+  Options extends T['Options'] = T['Options']
+> extends Attribute<T & { Options: Options }> {
   static TYPE = 'text-attribute';
 
-  constructor(options: T['Options']) {
+  constructor(options: Options) {
     super(TextAttribute.TYPE, {
       ...options,
       valueType: options.valueType ?? textType,

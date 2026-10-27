@@ -20,3 +20,4 @@ Consolidate the type system, expressions, parser definitions and schema into the
 - Separate the resolved schema graph from XML parsing and JSON serialization. Rename Variable to Field, remove format-specific Schema methods and retain XML declarations in XML-specific schema, model and field subclasses. Replace the legacy XML parser and diagnostic collector with parser-core definitions while preserving typed choice keys and XML serialization.
 - Move QueryType from parser-type-system to parser-schema without changing its behavior. Expose Day and date utilities from parser-schema, keep schema error collection internal and move template function signatures out of the schema package.
 - Add EnumToken for fixed grammar symbols such as operators and brackets.
+- Allow set, number, boolean, list and text attributes to retain inferred extended options without adding component-specific metadata to parser-core.

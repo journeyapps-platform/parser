@@ -8,15 +8,19 @@ export interface ListAttributeOptions extends AttributeOptions<string[]> {
   delimiter?: string;
 }
 
-export interface ListAttributeGenerics extends AttributeGenerics {
+export interface ListAttributeGenerics<
+  Options extends ListAttributeOptions = ListAttributeOptions
+> extends AttributeGenerics {
   Value: CombinedListExpression | null;
-  Options: ListAttributeOptions;
+  Options: Options;
 }
 
-export class ListAttribute extends Attribute<ListAttributeGenerics> {
+export class ListAttribute<Options extends ListAttributeOptions = ListAttributeOptions> extends Attribute<
+  ListAttributeGenerics<Options>
+> {
   static TYPE = 'list-attribute';
   delimiter: string;
-  constructor(options: ListAttributeGenerics['Options']) {
+  constructor(options: Options) {
     super(ListAttribute.TYPE, {
       ...options,
       options: options.options || [],

@@ -7,14 +7,18 @@ export interface SetAttributeOptions extends AttributeOptions<string> {
   options: string[];
 }
 
-export interface SetAttributeGenerics extends AttributeGenerics {
+export interface SetAttributeGenerics<
+  Options extends SetAttributeOptions = SetAttributeOptions
+> extends AttributeGenerics {
   Value: CombinedSetExpression | null;
-  Options: SetAttributeOptions;
+  Options: Options;
 }
 
-export class SetAttribute extends Attribute<SetAttributeGenerics> {
+export class SetAttribute<Options extends SetAttributeOptions = SetAttributeOptions> extends Attribute<
+  SetAttributeGenerics<Options>
+> {
   static TYPE = 'set-attribute';
-  constructor(options: SetAttributeOptions) {
+  constructor(options: Options) {
     super(SetAttribute.TYPE, {
       ...options,
       configurable: options.configurable ?? true,

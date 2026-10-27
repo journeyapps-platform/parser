@@ -15,20 +15,24 @@ export interface NumberAttributeOptions extends AttributeOptions<number, number>
   range?: NumberAttributeRange;
 }
 
-export interface NumberAttributeGenerics extends AttributeGenerics {
-  Options: NumberAttributeOptions;
+export interface NumberAttributeGenerics<
+  Options extends NumberAttributeOptions = NumberAttributeOptions
+> extends AttributeGenerics {
+  Options: Options;
   Value: CombinedNumberExpression | null;
   NormalizedValue: number;
 }
 
-export class NumberAttribute extends Attribute<NumberAttributeGenerics> {
+export class NumberAttribute<Options extends NumberAttributeOptions = NumberAttributeOptions> extends Attribute<
+  NumberAttributeGenerics<Options>
+> {
   static TYPE = 'number-attribute';
 
   static isInstanceOf(attr: Attribute): attr is NumberAttribute {
     return attr.type === NumberAttribute.TYPE;
   }
 
-  constructor(options: NumberAttributeGenerics['Options']) {
+  constructor(options: Options) {
     super(NumberAttribute.TYPE, {
       ...options,
       valueType: options.valueType ?? numberType,

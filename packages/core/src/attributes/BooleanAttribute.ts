@@ -14,8 +14,10 @@ import { booleanType } from '@ja-platform/parser-type-system';
 
 export type CombinedBooleanExpression = EvaluatedExpression | ConstantExpression<boolean> | ShorthandExpression;
 
-export interface BooleanAttributeGenerics extends AttributeGenerics {
-  Options: AttributeOptions<boolean, boolean>;
+export interface BooleanAttributeGenerics<
+  Options extends AttributeOptions<boolean, boolean> = AttributeOptions<boolean, boolean>
+> extends AttributeGenerics {
+  Options: Options;
   Value: CombinedBooleanExpression | null;
   NormalizedValue: boolean;
 }
@@ -23,14 +25,16 @@ export interface BooleanAttributeGenerics extends AttributeGenerics {
 /**
  * For dealing with boolean attribute types such as `show-if` and `hide-if`
  */
-export class BooleanAttribute extends Attribute<BooleanAttributeGenerics> {
+export class BooleanAttribute<
+  Options extends AttributeOptions<boolean, boolean> = AttributeOptions<boolean, boolean>
+> extends Attribute<BooleanAttributeGenerics<Options>> {
   static TYPE = 'boolean-attribute';
 
   static isInstanceOf(attr: Attribute): attr is BooleanAttribute {
     return attr.type === BooleanAttribute.TYPE;
   }
 
-  constructor(options: BooleanAttributeGenerics['Options']) {
+  constructor(options: Options) {
     const valueType = options.valueType ?? new ConditionType();
     super(BooleanAttribute.TYPE, {
       ...options,
