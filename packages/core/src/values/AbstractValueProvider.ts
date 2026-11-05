@@ -18,8 +18,9 @@ export abstract class AbstractValueProvider extends BaseObserver<ParsedValueProv
     this.providerValues.clear();
   }
 
-  value<T>(attribute: ParsedAttribute): ParsedProviderValue<T> {
+  value<T>(attribute: ParsedAttribute): ParsedProviderValue<T> | undefined {
     const providerValue = this.createProviderValue<T>(attribute);
+    if (providerValue === undefined) return undefined;
     this.providerValues.set(providerValue, attribute);
     const deregister = providerValue.registerListener({
       disposed: () => {
@@ -50,5 +51,5 @@ export abstract class AbstractValueProvider extends BaseObserver<ParsedValueProv
     this.iterateListeners((listener) => listener.dirty?.());
   }
 
-  protected abstract createProviderValue<T>(attribute: ParsedAttribute): ParsedProviderValue<T>;
+  protected abstract createProviderValue<T>(attribute: ParsedAttribute): ParsedProviderValue<T> | undefined;
 }

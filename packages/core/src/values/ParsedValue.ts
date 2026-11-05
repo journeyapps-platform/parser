@@ -31,7 +31,11 @@ export class ParsedValue<T> extends BaseObserver<ParsedValueListener<T | undefin
     providers: readonly AbstractValueProvider[]
   ) {
     super();
-    this.providerValues = Object.freeze(providers.map((provider) => provider.value(attribute)));
+    this.providerValues = Object.freeze(
+      providers
+        .map((provider) => provider.value(attribute))
+        .filter((value): value is ParsedProviderValue<unknown> => value !== undefined)
+    );
     this.deregister = this.providerValues.map((value) =>
       value.registerListener({
         changed: () => this.refresh(),

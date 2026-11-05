@@ -34,6 +34,7 @@ export * from './values/ConstantExpressionValueProvider';
 export * from './values/ParserDefaultValueProvider';
 export * from './values/ParsedNodeValues';
 export * from './values/ParsedProviderValue';
+export * from './values/MappedParsedProviderValue';
 export * from './values/ParsedValue';
 export * from './utils/types/valueOf';
 

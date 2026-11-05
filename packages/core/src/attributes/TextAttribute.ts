@@ -3,6 +3,7 @@ import { AttributeParseEvent } from '../AttributeParseEvent';
 import { Attribute, AttributeGenerics, AttributeOptions } from './Attribute';
 import {
   FormatStringExpression,
+  ConstantExpression,
   CombinedParser,
   FunctionExpressionParser,
   EvaluatedExpressionParser,
@@ -11,7 +12,7 @@ import {
 } from '@ja-platform/parser-expressions';
 import { textType } from '@ja-platform/parser-type-system';
 
-export type CombinedTextExpression = FormatStringExpression | EvaluatedExpression;
+export type CombinedTextExpression = ConstantExpression<string> | FormatStringExpression | EvaluatedExpression;
 
 export type TextAttributeOptions<Value = string> = AttributeOptions<Value, Value>;
 
@@ -47,7 +48,15 @@ export class TextAttribute<
   }
 
   protected getParsedValue(event: AttributeParseEvent): CombinedTextExpression | null {
-    const expression = super.getParsedValue(event);
+    let expression = super.getParsedValue(event);
+    if (expression instanceof FormatStringExpression && expression.parameters.length === 0) {
+      expression = new ConstantExpression({
+        value: expression.render([]),
+        valueType: textType,
+        tokens: expression.tokens,
+        start: expression.start
+      });
+    }
     this.validateInput(event, expression);
     return expression;
   }
