@@ -193,11 +193,11 @@ importers:
         specifier: workspace:*
         version: link:../type-system
       '@journeyapps/common-tree':
-        specifier: 0.0.0-dev-20261021193021
-        version: 0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261105193553
+        version: 0.0.0-dev-20261105193553
       '@journeyapps/common-utils':
-        specifier: 0.0.0-dev-20261021193021
-        version: 0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261105193553
+        version: 0.0.0-dev-20261105193553
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
@@ -206,8 +206,8 @@ importers:
         version: 5.10.0
     devDependencies:
       '@journeyapps/common-xml':
-        specifier: 0.0.0-dev-20261021193021
-        version: 0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261105193553
+        version: 0.0.0-dev-20261105193553
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(@vitest/browser-webdriverio@5.0.0)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
@@ -234,8 +234,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@journeyapps/common-xml':
-        specifier: 0.0.0-dev-20261021193021
-        version: 0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261105193553
+        version: 0.0.0-dev-20261105193553
       '@journeyapps/domparser':
         specifier: ^0.4.1
         version: 0.4.1
@@ -340,8 +340,8 @@ importers:
         specifier: workspace:*
         version: link:../type-system
       '@journeyapps/common-xml':
-        specifier: 0.0.0-dev-20261021193021
-        version: 0.0.0-dev-20261021193021
+        specifier: 0.0.0-dev-20261105193553
+        version: 0.0.0-dev-20261105193553
       '@journeyapps/domparser':
         specifier: ^0.4.1
         version: 0.4.1
@@ -503,14 +503,14 @@ packages:
     resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
     engines: {node: '>= 20.12.0'}
 
-  '@journeyapps/common-tree@0.0.0-dev-20261021193021':
-    resolution: {integrity: sha512-L7Up8gY/DISys+kcaaP7WaumLOSWlY7XXROwIsXIljGCwpUKtLa+3ZBEmyhftxiEz00LqIiUNmA7F4P+JqTijQ==}
+  '@journeyapps/common-tree@0.0.0-dev-20261105193553':
+    resolution: {integrity: sha512-pUInztU8udr6lf1RBpGJNbjAoyWj+ZBWYGGYv75DV1yRxvSiRSrtiLnUPDLiJNUe1XYAFJ41bIRZIErbtmDoHg==}
 
-  '@journeyapps/common-utils@0.0.0-dev-20261021193021':
-    resolution: {integrity: sha512-7V2gUDJI13RNfpbeFGWdQY3FbaqkSa102IAJLpVx4819m59/nX53SfpqYFWa+E1vNux0Rc6csvFsVjmLI9jrUw==}
+  '@journeyapps/common-utils@0.0.0-dev-20261105193553':
+    resolution: {integrity: sha512-5x1hmsKQmea1bt0rmk1Fd9qyYpb8PnyZnR7o1uZRVaxdvwHJ7NGTqOxmw6gP36bh+OmQIU56c9cossn9ibPMuw==}
 
-  '@journeyapps/common-xml@0.0.0-dev-20261021193021':
-    resolution: {integrity: sha512-hezi+z9BVh8CZ+nDzxUhcJ+w7n8tejrcjeu7+VKFn/ath4sMNvqfRwz4LHJ3ZfnBUhvp0cQH6ekZjvtBZwa1lQ==}
+  '@journeyapps/common-xml@0.0.0-dev-20261105193553':
+    resolution: {integrity: sha512-VfVwdi+dfqK4fNBe7Gd7VpPVQOagSyAe3CahVvg0/o2MWFmghD5HIdtismXYz18cQgVyR+iiZLTdFCuOIFH94A==}
 
   '@journeyapps/domparser@0.4.1':
     resolution: {integrity: sha512-rZ2gxAVVwE6tklS2lm04nkI52BCUjECVO8R9+bG9Uz8L9/ZBqxhuXu23jKX66G0Dc3evx5HWmuEuunOW7/Mahw==}
@@ -2021,13 +2021,13 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@journeyapps/common-tree@0.0.0-dev-20261021193021':
+  '@journeyapps/common-tree@0.0.0-dev-20261105193553':
     dependencies:
-      '@journeyapps/common-utils': 0.0.0-dev-20261021193021
+      '@journeyapps/common-utils': 0.0.0-dev-20261105193553
 
-  '@journeyapps/common-utils@0.0.0-dev-20261021193021': {}
+  '@journeyapps/common-utils@0.0.0-dev-20261105193553': {}
 
-  '@journeyapps/common-xml@0.0.0-dev-20261021193021':
+  '@journeyapps/common-xml@0.0.0-dev-20261105193553':
     dependencies:
       '@journeyapps/domparser': 0.4.1
       xmldom: 0.6.0

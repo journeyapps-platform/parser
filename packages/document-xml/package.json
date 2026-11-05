@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@ja-platform/parser-core": "workspace:*",
-    "@journeyapps/common-xml": "0.0.0-dev-20261021193021",
+    "@journeyapps/common-xml": "0.0.0-dev-20261105193553",
     "@journeyapps/domparser": "^0.4.1"
   },
   "devDependencies": {

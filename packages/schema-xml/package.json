@@ -21,7 +21,7 @@
     "@ja-platform/parser-expressions": "workspace:*",
     "@ja-platform/parser-schema": "workspace:*",
     "@ja-platform/parser-type-system": "workspace:*",
-    "@journeyapps/common-xml": "0.0.0-dev-20261021193021",
+    "@journeyapps/common-xml": "0.0.0-dev-20261105193553",
     "@journeyapps/domparser": "^0.4.1"
   },
   "devDependencies": {
