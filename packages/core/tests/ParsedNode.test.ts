@@ -365,7 +365,7 @@ describe('ParsedNode', () => {
     expect(parsed.attribute('id')).toBeInstanceOf(ParsedAttribute);
     expect(parsed.attribute('id').expression().value()).toBe('orders');
     expect(parsed.attribute('label')).toBeInstanceOf(ParsedAttribute);
-    expect(parsed.attribute('label').expression().toString()).toBe('Hello');
+    expect(parsed.attribute('label').expression().raw()).toBe('Hello');
     expect(parsed.attribute('enabled').expression().value()).toBe(true);
     expect(parsed.attributes(['label'])).toEqual([parsed.attribute('label')]);
     expect(parsed.attributes(['missing'])).toEqual([]);
@@ -405,9 +405,9 @@ describe('ParsedNode', () => {
     expect(
       [staticItem, queryItem, anotherStaticItem].map((item) => item.attributes().map((attribute) => attribute.name))
     ).toEqual([['label'], ['query'], ['label']]);
-    expect(staticItem.attribute('label').expression().toString()).toBe('Static');
-    expect(queryItem.attribute('query').expression().toString()).toBe('items_query');
-    expect(anotherStaticItem.attribute('label').expression().toString()).toBe('Another');
+    expect(staticItem.attribute('label').expression().raw()).toBe('Static');
+    expect(queryItem.attribute('query').expression().raw()).toBe('items_query');
+    expect(anotherStaticItem.attribute('label').expression().raw()).toBe('Another');
   });
   it('distinguishes absent functions from invalid supplied values', () => {
     const parser = new Node({ name: 'item' });
