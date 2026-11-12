@@ -1,6 +1,9 @@
 import { AttributeInputLocation } from '../input/AttributeInput';
 import { AttributeParseEvent } from '../AttributeParseEvent';
-import { Attribute, AttributeGenerics, AttributeOptions } from './Attribute';
+import { Attribute, AttributeGenerics, AttributeOptions, StringifyDirective } from './Attribute';
+import type { AttributeInput } from '../input/AttributeInput';
+import type { NodeInput } from '../input/NodeInput';
+import type { ParsedNode } from '../parsed/ParsedNode';
 import {
   FormatStringExpression,
   ConstantExpression,
@@ -14,7 +17,9 @@ import { textType } from '@ja-platform/parser-type-system';
 
 export type CombinedTextExpression = ConstantExpression<string> | FormatStringExpression | EvaluatedExpression;
 
-export type TextAttributeOptions<Value = string> = AttributeOptions<Value, Value>;
+export type TextAttributeOptions<Value = string> = AttributeOptions<Value, Value> & {
+  allowContentFromNode?: boolean;
+};
 
 export interface TextAttributeGenerics<Value = string> extends AttributeGenerics {
   Value: CombinedTextExpression | null;
@@ -47,6 +52,20 @@ export class TextAttribute<
     return attr.type === TextAttribute.TYPE;
   }
 
+  protected getInput(node?: NodeInput): AttributeInput | undefined {
+    const attribute = super.getInput(node);
+    if (attribute || !this.options.allowContentFromNode) return attribute;
+    const content = node?.content();
+    if (!content) return undefined;
+    return { ...content, location: AttributeInputLocation.CONTENT };
+  }
+
+  stringify(value: T['Value'], parent: ParsedNode): StringifyDirective {
+    const directive = super.stringify(value, parent);
+    if (!this.options.allowContentFromNode) return directive;
+    return { ...directive, isAttribute: !parent.content() };
+  }
+
   protected getParsedValue(event: AttributeParseEvent): CombinedTextExpression | null {
     let expression = super.getParsedValue(event);
     if (expression instanceof FormatStringExpression && expression.parameters.length === 0) {
@@ -71,6 +90,9 @@ export class TextAttribute<
   }
 
   serialize(): any {
+    if (this.options.allowContentFromNode) {
+      return { ...super.serialize(), type: 'content-text' };
+    }
     return {
       ...super.serialize(),
       type: 'text'

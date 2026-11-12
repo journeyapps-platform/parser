@@ -8,7 +8,7 @@ import {
 } from '@ja-platform/parser-expressions';
 import { numberType, booleanType, textType } from '@ja-platform/parser-type-system';
 import { expect, expectTypeOf, it } from 'vitest';
-import { Node, ContentNode, ContentTextAttribute, ConstantExpressionValueProvider } from '../src';
+import { Node, ContentNode, TextAttribute, ConstantExpressionValueProvider } from '../src';
 
 it('parses element content using the declared value type and serializes its original text', () => {
   const definition = new ContentNode({ name: 'timeout', valueType: numberType });
@@ -60,7 +60,7 @@ it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to l
 
 it('uses content as the input for prefixed text without rewriting the source', () => {
   const definition = new Node({ name: 'label' });
-  definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
+  definition.addAttribute(new TextAttribute({ allowContentFromNode: true, name: 'title' }));
   const { input } = xmlInput('<label>$:getLabel()</label>');
   const node = definition.parseTree({
     input,
@@ -132,7 +132,7 @@ it('validates explicitly selected format syntax as element content', () => {
 
 it('uses an explicit content-text attribute before the element content fallback', () => {
   const definition = new Node({ name: 'label' });
-  definition.addAttribute(new ContentTextAttribute({ name: 'title' }));
+  definition.addAttribute(new TextAttribute({ allowContentFromNode: true, name: 'title' }));
   const node = definition.parseTree({
     ...xmlInput('<label title="$:getLabel()">Fallback</label>'),
     scope: { getReference: () => null },

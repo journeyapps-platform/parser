@@ -2,7 +2,7 @@ import { AttributeInputLocation } from '../src';
 import { describe, expect, it, vi } from 'vitest';
 import { parse } from '@journeyapps/common-xml';
 import { XMLNodeInput } from '../../document-xml/src/XMLNodeInput';
-import { ContentTextAttribute, Node, NumberAttribute } from '../src';
+import { TextAttribute, Node, NumberAttribute } from '../src';
 
 describe('Explicit XML attribute inputs', () => {
   it.each([
@@ -10,7 +10,7 @@ describe('Explicit XML attribute inputs', () => {
     { xml: '<label>Hello {name}</label>', location: AttributeInputLocation.CONTENT, value: 'Hello {name}' }
   ])('routes $location input and format validation through the shared parser', ({ xml, location, value }) => {
     const definition = new Node({ name: 'label' });
-    const attribute = new ContentTextAttribute({ name: 'title' });
+    const attribute = new TextAttribute({ allowContentFromNode: true, name: 'title' });
     definition.addAttribute(attribute);
     const parseInput = vi.spyOn(attribute, 'parseInput');
     const validateFormatAttribute = vi.fn();

@@ -49,12 +49,16 @@ export class ParsedProviderValue<T> extends BaseObserver<ParsedProviderValueList
     }
   }
 
+  /**
+   * Stop updates and release subscriptions, preserving the final snapshot.
+   * To withdraw this contribution and select a fallback, call setActive(false) first.
+   */
   dispose(): void {
     if (this.disposed) {
       return;
     }
-    this.setActive(false);
     this.disposed = true;
     this.iterateListeners((listener) => listener.disposed?.());
+    this.clearListeners();
   }
 }

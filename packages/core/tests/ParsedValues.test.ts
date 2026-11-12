@@ -153,11 +153,12 @@ describe('Parsed values', () => {
     expect(changed).toHaveBeenCalledTimes(1);
     expect(activeChanged).toHaveBeenCalledTimes(1);
     contribution.dispose();
-    expect(activeChanged).toHaveBeenLastCalledWith(false);
+    expect(contribution.current).toBe('second');
+    expect(contribution.active).toBe(true);
     contribution.setActive(true);
     contribution.setValue('disposed');
     expect(changed).toHaveBeenCalledTimes(1);
-    expect(activeChanged).toHaveBeenCalledTimes(2);
+    expect(activeChanged).toHaveBeenCalledTimes(1);
   });
 
   it('keeps ordered contributions subscribed while activity chooses the last active value', () => {
@@ -295,16 +296,43 @@ describe('Parsed values', () => {
     expect(changed).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back when a contributing provider is disposed while the resolved value is still observed', () => {
+  it('preserves the final snapshot when a provider is disposed while still observed', () => {
     const { attribute } = setup();
+    const lower = new MutableProvider('lower');
     const source = new MutableProvider('watched');
-    const value = new ParsedValue<string>(attribute, [new ParserDefaultValueProvider(), source]);
+    const value = new ParsedValue<string>(attribute, [lower, source]);
+    const changed = vi.fn();
+    const disposed = vi.fn();
+    value.registerListener({ changed });
+    const contribution = source.values.get(attribute);
+    contribution.registerListener({ disposed });
+    source.dispose();
+    source.dispose();
+    expect(value.current).toBe('watched');
+    expect(value.activeValue).toBe(contribution);
+    expect(contribution.active).toBe(true);
+    expect(disposed).toHaveBeenCalledTimes(1);
+    contribution.setValue('ignored');
+    contribution.setActive(false);
+    lower.values.get(attribute).setValue('updated lower');
+    expect(value.current).toBe('watched');
+    expect(changed).not.toHaveBeenCalled();
+    value.release();
+    lower.dispose();
+  });
+
+  it('selects the fallback when a contribution is explicitly withdrawn before disposal', () => {
+    const { attribute } = setup();
+    const defaults = new ParserDefaultValueProvider();
+    const source = new MutableProvider('watched');
+    const value = new ParsedValue<string>(attribute, [defaults, source]);
     const changed = vi.fn();
     value.registerListener({ changed });
+    source.values.get(attribute).setActive(false);
     source.dispose();
     expect(value.current).toBe('default');
-    expect(changed).toHaveBeenCalledWith('default');
-    expect(value.providerValues).toHaveLength(2);
+    expect(changed).toHaveBeenCalledExactlyOnceWith('default');
     value.release();
+    defaults.dispose();
   });
 });

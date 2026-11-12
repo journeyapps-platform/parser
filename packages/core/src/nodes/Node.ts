@@ -3,7 +3,7 @@ import { AttributeInputLocation } from '../input/AttributeInput';
 import type { NodeInput, NodeInputSelector, NodeInputSelection } from '../input/NodeInput';
 import * as _ from 'lodash';
 import { Attribute } from '../attributes/Attribute';
-import { ContentTextAttribute } from '../attributes/ContentTextAttribute';
+import { TextAttribute, TextAttributeGenerics } from '../attributes/TextAttribute';
 import { CommonEntity, CommonEntityGenerics, CommonEntityOptions } from '../entities/CommonEntity';
 import { ParsedArrayNode } from '../parsed/ParsedArrayNode';
 import { ParsedNode } from '../parsed/ParsedNode';
@@ -146,10 +146,13 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     return this;
   }
 
-  getContentAttribute(): ContentTextAttribute | null {
-    return this.attributes.find((attr) => {
-      return attr instanceof ContentTextAttribute;
-    }) as ContentTextAttribute;
+  getContentAttribute(): TextAttribute<TextAttributeGenerics<unknown>> | null {
+    return (
+      this.attributes.find(
+        (attribute): attribute is TextAttribute<TextAttributeGenerics<unknown>> =>
+          attribute instanceof TextAttribute && !!attribute.options.allowContentFromNode
+      ) ?? null
+    );
   }
 
   getTemplate(cursor?: string): { template?: string; templates?: { name: string; template: string }[] } {
@@ -318,7 +321,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
 
     if (!event.input) return;
     const attributeNames = this.attributes
-      .filter((attribute) => !(attribute instanceof ContentTextAttribute))
+      .filter((attribute) => !(attribute instanceof TextAttribute && attribute.options.allowContentFromNode))
       .map((attribute) => attribute.name);
 
     this.nodes.forEach((definition) => {

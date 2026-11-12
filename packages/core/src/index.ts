@@ -5,7 +5,6 @@ export * from './attributes/Attribute';
 export * from './attributes/BooleanAttribute';
 export * from './attributes/ConstantBooleanAttribute';
 export * from './attributes/ConstantTextAttribute';
-export * from './attributes/ContentTextAttribute';
 export * from './attributes/ExpressionAttribute';
 export * from './attributes/FunctionAttribute';
 export * from './attributes/ListAttribute';
