@@ -11,3 +11,9 @@ minimumReleaseAgeExclude:
   - webdriver@10.1.0
   - webdriverio@10.1.0
   - '@journeyapps/*'
+  - '@ja-platform/parser-core@0.0.0-dev-20261112183707'
+  - '@ja-platform/parser-document-xml@0.0.0-dev-20261112183707'
+  - '@ja-platform/parser-expressions@0.0.0-dev-20261112183707'
+  - '@ja-platform/parser-schema-json@0.0.0-dev-20261112183707'
+  - '@ja-platform/parser-schema@0.0.0-dev-20261112183707'
+  - '@ja-platform/parser-type-system@0.0.0-dev-20261112183707'
