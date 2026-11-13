@@ -49,8 +49,8 @@ it.each(['Hello {name}', '$:getLabel()', '45', ''])('defaults content nodes to l
     scope: { getReference: () => null },
     report: () => {}
   });
-  node.setValueProviders([new ConstantExpressionValueProvider()]);
-  const value = node.valueTree();
+  const nodeContext = { providers: [new ConstantExpressionValueProvider()] };
+  const value = node.valueTree(nodeContext);
   expectTypeOf(value.current).toEqualTypeOf<string | undefined>();
   expect(node.content().value()).toBe(text);
   expect(value.current).toBe(text);

@@ -1,9 +1,13 @@
+import {
+  ConstantExpressionValueProvider as TestConstantProvider,
+  ParserDefaultValueProvider as TestDefaultProvider
+} from '../src';
+const defaultValueContext = { providers: [new TestDefaultProvider(), new TestConstantProvider()] };
 import { xmlInput } from './xmlInput';
 import { describe, expect, it, vi } from 'vitest';
 import { numberType, textType } from '@ja-platform/parser-type-system';
 import { ConstantExpression, ConstantExpressionParser } from '@ja-platform/parser-expressions';
 import {
-  ConstantExpressionValueProvider,
   ParsedArrayNode,
   ParsedValue,
   ParserDefaultValueProvider,
@@ -27,7 +31,7 @@ function parseDocument(definition: Node, source: string) {
     ...xmlInput(source),
     report: vi.fn()
   });
-  parsed.setValueProviders([new ConstantExpressionValueProvider()]);
+
   return parsed;
 }
 
@@ -41,7 +45,8 @@ describe('Shared XML parsing', () => {
     definition.addAttribute(new Attribute(Attribute.TYPE, { name: 'value', defaultValue }));
     const node = parseDocument(definition, '<settings />');
     const provider = new ParserDefaultValueProvider();
-    const value = new ParsedValue(node.attribute('value'), [provider]);
+    const valueAttribute = node.attribute('value');
+    const value = new ParsedValue(valueAttribute, [provider]);
     expect(value.current).toBe(defaultValue);
     expect(value.providerValues[0].active).toBe(defaultValue !== undefined);
     value.dispose();
@@ -70,8 +75,8 @@ describe('Shared XML parsing', () => {
     definition.addAttribute(attribute);
     const node = parseDocument(definition, '<settings />');
     const provider = new ParserDefaultValueProvider();
-    node.setValueProviders([provider]);
-    const value = node.valueTree();
+    const nodeContext = { providers: [provider] };
+    const value = node.valueTree(nodeContext);
     expect(value.current).toEqual({ value: expected });
     expect(attribute.serialize().defaultValue).toEqual(expected);
     value.dispose();
@@ -87,7 +92,7 @@ describe('Shared XML parsing', () => {
     definition.addNode(child);
 
     const node = parseDocument(definition, '<settings><item label="First" /><item label="Second" /></settings>');
-    const value = node.valueTree();
+    const value = node.valueTree(defaultValueContext);
     expect(value.current).toEqual({ items: [{ label: 'First' }, { label: 'Second' }] });
     expect(postParse).toHaveBeenCalledTimes(2);
     expect(node.validate({ scope })).toEqual([]);
@@ -101,7 +106,7 @@ describe('Shared XML parsing', () => {
       new BooleanAttribute({ name: 'enabled' })
     ]);
     const node = parseDocument(definition, '<settings count="4" enabled="true" />');
-    const value = node.valueTree();
+    const value = node.valueTree(defaultValueContext);
     expect(value.current).toEqual({ count: 4, enabled: true });
     expect(node.validate({ scope })).toEqual([]);
     value.dispose();
@@ -139,7 +144,7 @@ describe('Shared XML parsing', () => {
       })
     );
     const node = parseDocument(definition, '<settings><count>2</count><count>3</count><title>Hello</title></settings>');
-    const value = node.valueTree();
+    const value = node.valueTree(defaultValueContext);
     expect(value.current).toEqual({ counts: [2, 3], label: 'Hello' });
     expect(node.node('counts')).toBeInstanceOf(ParsedArrayNode);
     expect(node.validate({ scope })).toEqual([]);

@@ -1,6 +1,7 @@
+import { ParsedNodeValues, type ParsedNodeValuesLike } from '../values/ParsedNodeValues';
+import type { ValueProviderContext } from '../values/ValueProviderContext';
 import { ParsedNode } from './ParsedNode';
 import { ParsedNodeShapeValue } from './ParsedNodeTypes';
-import { ParsedNodeValues, ParsedNodeValuesLike } from '../values/ParsedNodeValues';
 
 export type ParsedContentNodeShape<Expression extends ParsedNodeShapeValue> = {
   content?: Expression;
@@ -17,8 +18,8 @@ export class ParsedContentNode<Expression extends ParsedNodeShapeValue, Value> e
     return super.content();
   }
 
-  valueTree(): ParsedNodeValuesLike<Value | undefined> {
-    const [[, source]] = this.collectAttributeValues(['content']);
-    return new ParsedNodeValues([source], ([value]) => value as Value | undefined);
+  valueTree(provider: ValueProviderContext): ParsedNodeValuesLike<Value | undefined> {
+    const source = this.createValues(['content'], provider);
+    return new ParsedNodeValues([source], ([value]) => (value as { content?: Value }).content);
   }
 }

@@ -45,13 +45,13 @@ function setup() {
     }
   });
   const mutable = new MutableProvider();
-  node.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider(), mutable]);
-  return { node, mutable };
+  const nodeContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider(), mutable] };
+  return { node, mutable, context: nodeContext };
 }
 
 it('resolves typed attributes, descendants and repeated children through providers', () => {
-  const { node } = setup();
-  const values = node.valueTree();
+  const { node, context } = setup();
+  const values = node.valueTree(context);
   expect(values.current).toEqual({
     enabled: true,
     name: 'Hello {name}',
@@ -61,39 +61,36 @@ it('resolves typed attributes, descendants and repeated children through provide
   values.dispose();
 });
 
-it('updates deep values and releases the tree without releasing another consumer', () => {
-  const { node, mutable } = setup();
-  const tree = node.valueTree();
-  const attributes = node.value(['enabled']);
+it('updates nested values and disposes only the tree-owned evaluations', () => {
+  const { node, mutable, context } = setup();
+  const tree = node.valueTree(context);
   const timeoutNode = node.node('group').node('timeout');
-  const timeout = timeoutNode.valueTree();
-  const contribution = mutable.values.get(timeoutNode.attribute('content'));
+  const treeContribution = mutable.values.get(timeoutNode.attribute('content'));
+  const treeDisposed = vi.fn();
+  treeContribution.registerListener({ disposed: treeDisposed });
+  const timeout = timeoutNode.valueTree(context);
+  const independentContribution = mutable.values.get(timeoutNode.attribute('content'));
+  const independentDisposed = vi.fn();
+  independentContribution.registerListener({ disposed: independentDisposed });
   const changed = vi.fn();
-  const disposed = vi.fn();
   tree.registerListener({ changed });
-  mutable.values.forEach((value) => value.registerListener({ disposed }));
-
-  contribution.setValue('045');
-  contribution.setActive(true);
+  treeContribution.setValue('045');
+  treeContribution.setActive(true);
   expect(tree.current.group.timeout).toBe(45);
-  expect(changed).toHaveBeenCalledTimes(1);
-
+  expect(timeout.current).toBe(30);
+  expect(changed).toHaveBeenCalledOnce();
   tree.dispose();
   tree.dispose();
-  expect(disposed).toHaveBeenCalledTimes(mutable.values.size - 2);
-  contribution.setValue(60);
+  expect(treeDisposed).toHaveBeenCalledOnce();
+  expect(independentDisposed).not.toHaveBeenCalled();
+  independentContribution.setValue(60);
+  independentContribution.setActive(true);
   expect(timeout.current).toBe(60);
   expect(tree.current.group.timeout).toBe(45);
-  expect(changed).toHaveBeenCalledTimes(1);
-  const enabled = mutable.values.get(node.attribute('enabled'));
-  enabled.setValue(false);
-  enabled.setActive(true);
-  expect(attributes.current.enabled).toBe(false);
-  expect(tree.current.enabled).toBe(true);
+  expect(changed).toHaveBeenCalledOnce();
   timeout.dispose();
-  expect(disposed).toHaveBeenCalledTimes(mutable.values.size - 1);
-  attributes.dispose();
-  expect(disposed).toHaveBeenCalledTimes(mutable.values.size);
+  expect(independentDisposed).toHaveBeenCalledOnce();
+  context.providers.forEach((provider) => provider.dispose());
 });
 
 it.each([
@@ -103,10 +100,11 @@ it.each([
   { name: 'changed dates', before: new Date(0), after: new Date(1), changed: true },
   { name: 'different containers', before: {}, after: [], changed: true }
 ])('notifies aggregate consumers according to $name', ({ before, after, changed }) => {
-  const values = new ParsedNodeValues<unknown>([], () => before);
+  const source = new ParsedProviderValue<unknown>({ active: true, value: before });
+  const values = new ParsedNodeValues<unknown>([source], ([value]) => value);
   const listener = vi.fn();
   values.registerListener({ changed: listener });
-  values.update(after);
+  source.setValue(after);
   expect(listener).toHaveBeenCalledTimes(changed ? 1 : 0);
   expect(values.current).toBe(changed ? after : before);
   values.dispose();

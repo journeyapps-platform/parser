@@ -20,8 +20,8 @@ describe('JSON document input', () => {
     const parseText = vi.spyOn(text, 'parse');
     for (const expected of ['hello', [], [1, 2], { count: 3 }]) {
       const parsed = either.parseTree({ input: JSONNodeInput.parse(JSON.stringify(expected)), report: () => {} });
-      parsed.setValueProviders([new ConstantExpressionValueProvider()]);
-      const values = parsed.valueTree();
+      const parsedContext = { providers: [new ConstantExpressionValueProvider()] };
+      const values = parsed.valueTree(parsedContext);
       expect(values.current).toEqual(expected);
       expect(parsed.errors({ deep: true })).toEqual([]);
       values.dispose();
@@ -53,14 +53,14 @@ describe('JSON document input', () => {
       input: JSONNodeInput.parse('{"small":2,"large":4}'),
       report: () => {}
     });
-    parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-    const recordValues = parsed.valueTree();
+    const parsedContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()] };
+    const recordValues = parsed.valueTree(parsedContext);
     expect(recordValues.current).toEqual({ small: 2, large: 4 });
     expect(parsed.nodes().every((node) => node.getParent() === parsed)).toBe(true);
     recordValues.dispose();
     const empty = definition.parseTree({ input: JSONNodeInput.parse('{}'), report: () => {} });
-    empty.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-    const values = empty.valueTree();
+    const emptyContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()] };
+    const values = empty.valueTree(emptyContext);
     expect(values.current).toEqual({});
     values.dispose();
 
@@ -165,8 +165,8 @@ describe('JSON document input', () => {
     expect([...JSONNodeInput.parse('[]').attributeNames()]).toEqual([]);
     expect([...JSONNodeInput.parse('42').attributeNames()]).toEqual([]);
     const result = definition.parseTree({ input, report });
-    result.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-    const values = result.valueTree();
+    const resultContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()] };
+    const values = result.valueTree(resultContext);
     expect(values.current).toEqual({ delay: 500, title: 'App', languages: ['en', 'fr'] });
     expect(report).not.toHaveBeenCalled();
     values.dispose();
@@ -175,8 +175,8 @@ describe('JSON document input', () => {
       ['{"languages":[]}', []]
     ] as const) {
       const parsed = definition.parseTree({ input: JSONNodeInput.parse(source), report: vi.fn() });
-      parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
-      const value = parsed.valueTree();
+      const parsedContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()] };
+      const value = parsed.valueTree(parsedContext);
       expect(value.current.languages).toEqual(expected);
       value.dispose();
     }

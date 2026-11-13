@@ -1,6 +1,7 @@
 import { xmlInput } from './xmlInput';
 import { describe, expect, it, vi } from 'vitest';
 import { booleanType } from '@ja-platform/parser-type-system';
+
 import {
   AbstractValueProvider,
   ParseEvent,
@@ -106,7 +107,8 @@ describe('Parsed values', () => {
       scope: {} as ParseEvent['scope'],
       report: () => {}
     });
-    const value = new ParsedValue<boolean>(node.attribute('showIf'), [new MutableProvider(input)]);
+    const showIfAttribute = node.attribute('showIf');
+    const value = new ParsedValue<boolean>(showIfAttribute, [new MutableProvider(input)]);
     expect(value.current).toBe(expected);
     value.dispose();
   });
@@ -186,7 +188,7 @@ describe('Parsed values', () => {
     expect(changed.mock.calls.map(([current]) => current)).toEqual(['default', 'new config', 'watched']);
     expect(expression.created).toBe(1);
     expect(value.providerValues).toContain(expressionValue);
-    value.release();
+    value.dispose();
   });
 
   it('updates the cached winner without emitting when the resolved value stays equal', () => {
@@ -201,7 +203,7 @@ describe('Parsed values', () => {
     second.values.get(attribute).setActive(true);
     expect(value.activeValue).toBe(second.values.get(attribute));
     expect(changed).not.toHaveBeenCalled();
-    value.release();
+    value.dispose();
   });
 
   it.each([null, false, 0, '', undefined])('allows an explicitly active contribution containing %j', (current) => {
@@ -212,7 +214,7 @@ describe('Parsed values', () => {
     expect(value.current).toBe(current);
     source.values.get(attribute).setActive(false);
     expect(value.current).toBe('default');
-    value.release();
+    value.dispose();
   });
 
   it('normalizes only the winning contribution and serves reads from the cache', () => {
@@ -232,55 +234,52 @@ describe('Parsed values', () => {
     second.values.get(attribute).setValue('8');
     second.values.get(attribute).setActive(false);
     expect(changed.mock.calls.map(([current]) => current)).toEqual([8, 2]);
-    value.release();
+    value.dispose();
   });
 
-  it('shares resolved values between node consumers until their last release', () => {
+  it('owns separate evaluations for two sets reading the same attribute', () => {
     const { node, attribute } = setup();
     const source = new MutableProvider('first');
-    node.setValueProviders([source]);
-    const first = node.value(['value']);
-    const second = node.value(['value']);
-    const contribution = source.values.get(attribute);
-    const disposed = vi.fn();
-    contribution.registerListener({ disposed });
-    expect(source.created).toBe(1);
+    const pipeline = { providers: [source] };
+    const first = node.value(['value'], pipeline);
+    const firstContribution = source.values.get(attribute);
+    const second = node.value(['value'], pipeline);
+    const secondContribution = source.values.get(attribute);
+    const firstDisposed = vi.fn();
+    const secondDisposed = vi.fn();
+    firstContribution.registerListener({ disposed: firstDisposed });
+    secondContribution.registerListener({ disposed: secondDisposed });
+    expect(source.created).toBe(2);
+    expect(firstContribution).not.toBe(secondContribution);
     first.dispose();
-    contribution.setValue('second');
+    first.dispose();
+    expect(firstDisposed).toHaveBeenCalledOnce();
+    expect(secondDisposed).not.toHaveBeenCalled();
+    secondContribution.setValue('second');
     expect(first.current).toEqual({ value: 'first' });
     expect(second.current).toEqual({ value: 'second' });
-    expect(disposed).not.toHaveBeenCalled();
     second.dispose();
-    expect(disposed).toHaveBeenCalledTimes(1);
-    const next = node.value(['value']);
-    expect(source.created).toBe(2);
-    expect(source.values.get(attribute)).not.toBe(contribution);
-    next.dispose();
+    expect(secondDisposed).toHaveBeenCalledOnce();
+    source.dispose();
   });
 
-  it('retains a resolved value while consumers still need its contributions', () => {
+  it('disposes an owned resolved value and its contributions once', () => {
     const { attribute } = setup();
     const source = new MutableProvider('first');
     const value = new ParsedValue(attribute, [source]);
-    value.retain();
-    value.retain();
-    const contribution = source.values.get(attribute);
     const disposed = vi.fn();
-    contribution.registerListener({ disposed });
-    value.release();
-    contribution.setValue('second');
-    expect(value.current).toBe('second');
-    expect(disposed).not.toHaveBeenCalled();
-    value.release();
-    value.release();
-    expect(disposed).toHaveBeenCalledTimes(1);
+    source.values.get(attribute).registerListener({ disposed });
+    value.dispose();
+    value.dispose();
+    expect(disposed).toHaveBeenCalledOnce();
+    source.dispose();
   });
 
   it('publishes activity changes through node projections and stops updates after disposal', () => {
     const { node, attribute } = setup();
     const provider = new MutableProvider('first');
-    node.setValueProviders([provider]);
-    const value = node.value(['value']);
+    const nodeContext = { providers: [provider] };
+    const value = node.value(['value'], nodeContext);
     const changed = vi.fn();
     value.registerListener({ changed });
     const contribution = provider.values.get(attribute);
@@ -317,7 +316,7 @@ describe('Parsed values', () => {
     lower.values.get(attribute).setValue('updated lower');
     expect(value.current).toBe('watched');
     expect(changed).not.toHaveBeenCalled();
-    value.release();
+    value.dispose();
     lower.dispose();
   });
 
@@ -332,7 +331,7 @@ describe('Parsed values', () => {
     source.dispose();
     expect(value.current).toBe('default');
     expect(changed).toHaveBeenCalledExactlyOnceWith('default');
-    value.release();
+    value.dispose();
     defaults.dispose();
   });
 });

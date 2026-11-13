@@ -64,7 +64,7 @@ it.each([schemaXml, notificationsXml])('parses existing schema XML into typed de
     ...xmlInput(source),
     report: (error) => diagnostics.push(error)
   });
-  parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
+
   expect(diagnostics).toEqual([]);
   const asset = parsed
     .node('models')
@@ -111,7 +111,7 @@ it('retains typed choice keys, index directions and explicit database lists', ()
     </model></data-model>`),
     report: (error) => diagnostics.push(error)
   });
-  parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
+
   expect(diagnostics).toEqual([]);
   const converted = parsed.toSchema().objects.item;
   expect(converted.attributes.status.type.toJSON()).toMatchObject({

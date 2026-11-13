@@ -122,8 +122,8 @@ describe('ParsedNode', () => {
     expect(nameExpression.value()).toBe('item');
     expect(requiredExpression).toBeInstanceOf(ConstantExpression);
     expect(requiredExpression.value()).toBe(true);
-    parsed.setValueProviders([new ConstantExpressionValueProvider()]);
-    const values = parsed.value(['name', 'required']);
+    const parsedContext = { providers: [new ConstantExpressionValueProvider()] };
+    const values = parsed.value(['name', 'required'], parsedContext);
     expect(values.current).toEqual({ name: 'item', required: true });
     values.dispose();
   });
@@ -184,9 +184,9 @@ describe('ParsedNode', () => {
     parser.addAttribute(new BooleanAttribute({ name: 'hide-if', key: 'hideIf', defaultValue: null }));
     parser.addAttribute(new BooleanAttribute({ name: 'enabled', defaultValue: null }));
     const parsed = parser.parseTree({ ...createEvent('<column enabled="true" />') });
-    parsed.setValueProviders([new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()]);
+    const parsedContext = { providers: [new ParserDefaultValueProvider(), new ConstantExpressionValueProvider()] };
 
-    expect(parsed.value(['showIf', 'hideIf', 'enabled']).current).toEqual({
+    expect(parsed.value(['showIf', 'hideIf', 'enabled'], parsedContext).current).toEqual({
       showIf: null,
       hideIf: null,
       enabled: true

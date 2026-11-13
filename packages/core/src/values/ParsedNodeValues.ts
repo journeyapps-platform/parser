@@ -1,10 +1,9 @@
-import * as _ from 'lodash';
+import { isEqual } from 'lodash';
 import { BaseObserver } from '@journeyapps/common-utils';
-import { ParsedValue } from './ParsedValue';
 
 export interface ParsedNodeValuesListener<T> {
-  changed?: (value: T) => void;
-  disposed?: () => void;
+  changed?(value: T): void;
+  disposed?(): void;
 }
 
 export interface ParsedNodeValuesLike<T> {
@@ -13,12 +12,10 @@ export interface ParsedNodeValuesLike<T> {
   dispose(): void;
 }
 
-/**
- * Combine attribute or descendant values into one disposable value.
- */
+/** Owns attribute or descendant evaluations and their combined current value. */
 export class ParsedNodeValues<T> extends BaseObserver<ParsedNodeValuesListener<T>> implements ParsedNodeValuesLike<T> {
   current: T;
-  private readonly deregister: Array<() => void>;
+  private readonly deregister: Array<() => void> = [];
   private disposed = false;
 
   constructor(
@@ -26,31 +23,28 @@ export class ParsedNodeValues<T> extends BaseObserver<ParsedNodeValuesListener<T
     private readonly compose: (values: readonly unknown[]) => T
   ) {
     super();
-    this.current = this.read();
-    this.deregister = sources.map((source) => source.registerListener({ changed: () => this.update(this.read()) }));
+    try {
+      this.current = this.read();
+      for (const source of sources) {
+        this.deregister.push(source.registerListener({ changed: () => this.update(this.read()) }));
+      }
+    } catch (error) {
+      this.dispose();
+      throw error;
+    }
   }
 
-  update(value: T) {
-    if (_.isEqual(this.current, value)) {
-      return;
-    }
+  update(value: T): void {
+    if (isEqual(this.current, value)) return;
     this.current = value;
     this.iterateListeners((listener) => listener.changed?.(value));
   }
 
-  dispose() {
-    if (this.disposed) {
-      return;
-    }
+  dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
-    this.deregister.forEach((deregister) => deregister());
-    this.sources.forEach((source) => {
-      if (source instanceof ParsedValue) {
-        source.release();
-      } else {
-        source.dispose();
-      }
-    });
+    this.deregister.forEach((unsubscribe) => unsubscribe());
+    this.sources.forEach((source) => source.dispose());
     this.iterateListeners((listener) => listener.disposed?.());
   }
 

@@ -1,10 +1,10 @@
-import { ParsedNodeValues, ParsedNodeValuesLike } from '../values/ParsedNodeValues';
+import { ParsedNodeValues, type ParsedNodeValuesLike } from '../values/ParsedNodeValues';
+import type { ValueProviderContext } from '../values/ValueProviderContext';
 import { ParsedExpressionValue } from './ParsedNodeTypes';
 import { TreeNode } from '@journeyapps/common-tree';
 
 import type { SourceReference } from '../source/SourceReference';
 import { Node } from '../nodes/Node';
-import { AbstractValueProvider } from '../values/AbstractValueProvider';
 import { ParsedDiagnostic, ParsedDiagnosticStore } from './ParsedDiagnostic';
 import { ParsedNode } from './ParsedNode';
 
@@ -37,9 +37,9 @@ export class ParsedArrayNode<Child extends ParsedArrayNodeChild = ParsedNode<any
   /**
    * Resolve repeated children in order, preserving nested arrays.
    */
-  valueTree(): ParsedNodeValuesLike<ParsedExpressionValue<Child>[]> {
+  valueTree(provider: ValueProviderContext): ParsedNodeValuesLike<ParsedExpressionValue<Child>[]> {
     return new ParsedNodeValues(
-      this.nodes().map((child) => child.valueTree()),
+      this.nodes().map((child) => child.valueTree(provider)),
       (values) =>
         [
           ...(values.length === 0 && !this.inputPresent ? (this.definition.defaultValue ?? []) : values)
@@ -49,11 +49,6 @@ export class ParsedArrayNode<Child extends ParsedArrayNodeChild = ParsedNode<any
 
   at(index: number): Child | undefined {
     return this.nodes()[index];
-  }
-
-  setValueProviders(providers: readonly AbstractValueProvider[]): this {
-    this.nodes().forEach((child) => child.setValueProviders(providers));
-    return this;
   }
 
   pushError({ message, source, type }: ParsedDiagnostic): ParsedDiagnostic {

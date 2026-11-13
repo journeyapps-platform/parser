@@ -1,4 +1,7 @@
-import { ParsedNodeValues, ParsedNodeValuesLike } from '../values/ParsedNodeValues';
+import { ParsedValue } from '../values/ParsedValue';
+import { ParsedNodeValues } from '../values/ParsedNodeValues';
+
+import type { ParsedNodeValuesLike } from '../values/ParsedNodeValues';
 import { TreeNode, TreeNodeListener } from '@journeyapps/common-tree';
 import { ParseEvent } from '../ParseEvent';
 
@@ -8,6 +11,7 @@ import { ParsedArrayNode } from './ParsedArrayNode';
 import { ParsedAttribute } from './ParsedAttribute';
 import { ParsedDiagnostic, ParsedDiagnosticStore, ParsedValidationDiagnostic } from './ParsedDiagnostic';
 import type { ValidationContext } from '@ja-platform/parser-expressions';
+
 import {
   ParsedChild,
   ParsedChildNamesMarker,
@@ -24,8 +28,7 @@ import {
   ParsedNodeShape,
   ParsedNodeUntypedExpressionKey
 } from './ParsedNodeTypes';
-import { ParsedValue } from '../values/ParsedValue';
-import { AbstractValueProvider } from '../values/AbstractValueProvider';
+import type { ValueProviderContext } from '../values/ValueProviderContext';
 
 export interface ParsedNodeOptions extends ParseEvent {
   definition: Node<any>;
@@ -65,10 +68,8 @@ export interface ParsedNodeListener<
 export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = ParsedNodeValue<T>> extends TreeNode<
   ParsedNodeListener<any, any>
 > {
-  private readonly parsedValues = new Map<ParsedAttribute, ParsedValue<any>>();
   private attributesByKey: Map<string, ParsedAttribute> = new Map();
   private childrenByKey: Map<string, ParsedChild> = new Map();
-  private valueProviders?: readonly AbstractValueProvider[];
   public readonly definition: Node<any>;
   public readonly input?: NodeInput;
   public readonly parseParentNode?: ParsedNode;
@@ -102,83 +103,72 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
     return parent?.getRoot() ?? this;
   }
 
-  get parsedValueProviders(): readonly AbstractValueProvider[] | undefined {
-    return this.valueProviders;
-  }
-
-  setValueProviders(providers: readonly AbstractValueProvider[]): this {
-    this.parsedValues.clear();
-    this.valueProviders = Object.freeze([...providers]);
-    this.childEntries().forEach((child) => child.setValueProviders(providers));
-    return this;
-  }
-
   value<const Keys extends readonly ParsedNodeValueRequestKey<T, Value>[]>(
-    attributes: Keys
+    attributes: Keys,
+    provider: ValueProviderContext
   ): ParsedNodeValuesLike<ParsedNodeValueRequest<T, Value, Keys>>;
   value<RequestedValue = any>(
-    attributes: readonly ParsedNodeUntypedExpressionKey<T>[]
+    attributes: readonly ParsedNodeUntypedExpressionKey<T>[],
+    provider: ValueProviderContext
   ): ParsedNodeValuesLike<RequestedValue>;
-  value(attributeKeys: readonly string[]): ParsedNodeValuesLike<any> {
-    const attributes = this.collectAttributeValues(attributeKeys);
-    return new ParsedNodeValues(
-      attributes.map(([, source]) => source),
-      (currentValues) =>
-        Object.fromEntries(
-          attributes.flatMap(([key], index) =>
-            currentValues[index] === undefined ? [] : [[key, currentValues[index]]]
-          )
-        )
-    );
+  value(attributeKeys: readonly string[], provider: ValueProviderContext): ParsedNodeValuesLike<any> {
+    return this.createValues(attributeKeys, provider);
   }
 
-  /**
-   * Resolve this node's attributes and descendants through their value providers.
-   * Include declared defaults for absent children without creating parsed nodes.
-   */
-  valueTree(): ParsedNodeValuesLike<Value> {
+  protected createValues(attributeKeys: readonly string[], provider: ValueProviderContext): ParsedNodeValuesLike<any> {
+    const attributes = attributeKeys.map((key) => {
+      const attribute = this.attribute(key);
+      if (!attribute) throw new Error(`Unknown parsed attribute '${key}' on node '${this.getKey()}'`);
+      return attribute;
+    });
+    const sources: ParsedValue<unknown>[] = [];
+    try {
+      for (const attribute of attributes) {
+        sources.push(new ParsedValue(attribute, provider.providers));
+      }
+      return new ParsedNodeValues(sources, (values) =>
+        Object.fromEntries(
+          attributes.flatMap((attribute, index) => {
+            if (values[index] === undefined) return [];
+            return [[attribute.getKey(), values[index]]];
+          })
+        )
+      );
+    } catch (error) {
+      sources.forEach((source) => source.dispose());
+      throw error;
+    }
+  }
+
+  /** Assemble this node's flat attribute set and its child trees. */
+  valueTree(provider: ValueProviderContext): ParsedNodeValuesLike<Value> {
     const defaults = this.definition.nodes.flatMap(({ options, defaultValue }) =>
       !this.childrenByKey.has(options.key) && defaultValue !== undefined ? [[options.key, defaultValue]] : []
     );
-    const attributes = this.collectAttributeValues(this.attributes().map((attribute) => attribute.getKey()));
-    const sources: Array<readonly [string, ParsedNodeValuesLike<unknown>]> = [...attributes];
-    for (const [key, child] of this.childrenByKey) {
-      if (child instanceof ParsedArrayNode && child.inputPresent === false && child.definition.defaultValue == null) {
-        continue;
-      }
-      sources.push([key, child.valueTree()]);
-    }
-    return new ParsedNodeValues<Value>(
-      sources.map(([, source]) => source),
-      (currentValues) =>
-        Object.fromEntries([
-          ...defaults,
-          ...sources.flatMap(([key], index) =>
-            index < attributes.length && currentValues[index] === undefined ? [] : [[key, currentValues[index]]]
-          )
-        ]) as Value
+    const attributes = this.createValues(
+      this.attributes().map((attribute) => attribute.getKey()),
+      provider
     );
-  }
-
-  /**
-   * Collect retained attribute sources for a value container to own and release.
-   */
-  protected collectAttributeValues(attributeKeys: readonly string[]): Array<readonly [string, ParsedValue<unknown>]> {
-    if (!this.valueProviders) {
-      throw new Error(`No value providers have been configured for parsed node '${this.getKey()}'`);
-    }
-    const attributes = attributeKeys.map((key) => {
-      const attribute = this.attribute(key);
-      if (!attribute) {
-        throw new Error(`Unknown parsed attribute '${key}' on node '${this.getKey()}'`);
+    const children: Array<readonly [string, ParsedNodeValuesLike<unknown>]> = [];
+    try {
+      for (const [key, child] of this.childrenByKey) {
+        if (child instanceof ParsedArrayNode && !child.inputPresent && child.definition.defaultValue == null) continue;
+        children.push([key, child.valueTree(provider)]);
       }
-      return attribute;
-    });
-    const sources: Array<readonly [string, ParsedValue<unknown>]> = [];
-    for (const attribute of attributes) {
-      sources.push([attribute.getKey(), this.getParsedValue(attribute).retain()]);
+      return new ParsedNodeValues<Value>(
+        [attributes, ...children.map(([, child]) => child)],
+        ([values, ...childValues]) =>
+          ({
+            ...Object.fromEntries(defaults),
+            ...(values as Record<string, unknown>),
+            ...Object.fromEntries(children.map(([key], index) => [key, childValues[index]]))
+          }) as Value
+      );
+    } catch (error) {
+      attributes.dispose();
+      children.forEach(([, child]) => child.dispose());
+      throw error;
     }
-    return sources;
   }
 
   attribute<Key extends Extract<ParsedNodeRequiredAttributeName<T>, ParsedNodeExpressionKey<T>>>(
@@ -291,10 +281,6 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
 
     this.addParsedChild(child);
 
-    if (this.valueProviders) {
-      child.setValueProviders(this.valueProviders);
-    }
-
     return this;
   }
 
@@ -306,8 +292,6 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
   }
 
   setAttribute(attribute: ParsedAttribute): this {
-    const previous = this.attributesByKey.get(attribute.definition.options.key);
-    this.parsedValues.delete(previous);
     this.attributesByKey.set(attribute.definition.options.key, attribute);
     this.addParsedAttribute(attribute);
     return this;
@@ -341,23 +325,6 @@ export class ParsedNode<T extends ParsedNodeShape = ParsedNodeShape, Value = Par
       }
       return [child];
     });
-  }
-
-  private getParsedValue(attribute: ParsedAttribute): ParsedValue<any> {
-    let value = this.parsedValues.get(attribute);
-    if (!value) {
-      value = new ParsedValue(attribute, this.valueProviders);
-      this.parsedValues.set(attribute, value);
-      const deregister = value.registerListener({
-        disposed: () => {
-          deregister();
-          if (this.parsedValues.get(attribute) === value) {
-            this.parsedValues.delete(attribute);
-          }
-        }
-      });
-    }
-    return value;
   }
 
   private addParsedAttribute(attribute: ParsedAttribute) {

@@ -41,3 +41,5 @@ export * from './source/SourceReference';
 export * from './input/AttributeInput';
 export * from './input/NodeInput';
 export * from './input/AttributeParseContext';
+
+export * from './values/ValueProviderContext';
