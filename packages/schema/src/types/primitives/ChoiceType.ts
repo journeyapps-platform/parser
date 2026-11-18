@@ -49,7 +49,6 @@ export function withChoices<TBase extends new (...args: any[]) => Type>(Base: TB
       return {
         ...super.toJSON(),
         options: this.values(this.options)
-        })
       };
     }
   };
