@@ -8,12 +8,12 @@ export class ArrayType extends Type {
   readonly name = 'array';
   readonly isCollection = true;
 
-  constructor(readonly itemType: Type) {
-    super('array');
-  }
-
   static isInstanceOf(type: Type | null): type is ArrayType {
     return type?._typeName === 'array';
+  }
+
+  constructor(readonly itemType: Type) {
+    super('array');
   }
 
   stringify(): string {

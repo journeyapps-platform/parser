@@ -8,12 +8,12 @@ export class QueryType extends Type {
   readonly name = 'query';
   readonly isCollection = true;
 
-  constructor(readonly itemType: Type) {
-    super('query');
-  }
-
   static isInstanceOf(type: Type | null): type is QueryType {
     return type?._typeName === 'query';
+  }
+
+  constructor(readonly itemType: Type) {
+    super('query');
   }
 
   is(value: any): boolean {

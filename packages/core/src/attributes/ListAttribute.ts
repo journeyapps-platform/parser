@@ -20,14 +20,6 @@ export class ListAttribute<Options extends ListAttributeOptions = ListAttributeO
 > {
   static TYPE = 'list-attribute';
   delimiter: string;
-  constructor(options: Options) {
-    super(ListAttribute.TYPE, {
-      ...options,
-      options: options.options || [],
-      configurable: options.configurable ?? true
-    });
-    this.delimiter = options.delimiter ?? ',';
-  }
 
   static isInstanceOf(attr: Attribute): attr is ListAttribute {
     return attr.type === ListAttribute.TYPE;
@@ -45,6 +37,16 @@ export class ListAttribute<Options extends ListAttributeOptions = ListAttributeO
       return value;
     }
   }
+
+  constructor(options: Options) {
+    super(ListAttribute.TYPE, {
+      ...options,
+      options: options.options || [],
+      configurable: options.configurable ?? true
+    });
+    this.delimiter = options.delimiter ?? ',';
+  }
+
   serialize(): any {
     return {
       ...super.serialize(),

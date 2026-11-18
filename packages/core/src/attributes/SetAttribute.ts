@@ -18,16 +18,17 @@ export class SetAttribute<Options extends SetAttributeOptions = SetAttributeOpti
   SetAttributeGenerics<Options>
 > {
   static TYPE = 'set-attribute';
+
+  static isInstanceOf(attr: Attribute): attr is SetAttribute {
+    return attr.type === SetAttribute.TYPE;
+  }
+
   constructor(options: Options) {
     super(SetAttribute.TYPE, {
       ...options,
       configurable: options.configurable ?? true,
       options: options.options || []
     });
-  }
-
-  static isInstanceOf(attr: Attribute): attr is SetAttribute {
-    return attr.type === SetAttribute.TYPE;
   }
 
   serialize(): any {

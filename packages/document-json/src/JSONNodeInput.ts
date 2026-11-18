@@ -11,13 +11,6 @@ export class JSONNodeInput implements NodeInput {
     return this.node.type as NodeInputKind;
   }
 
-  constructor(
-    private readonly node: Node,
-    readonly name: string = ''
-  ) {
-    this.source = new JSONSourceReference(node);
-  }
-
   static parse(text: string, name = ''): JSONNodeInput {
     const errors: ParseError[] = [];
     const node = parseTree(text, errors, { disallowComments: true, allowTrailingComma: false });
@@ -27,6 +20,13 @@ export class JSONNodeInput implements NodeInput {
     }
     if (!node) throw new SyntaxError('Expected a JSON document node');
     return new JSONNodeInput(node, name);
+  }
+
+  constructor(
+    private readonly node: Node,
+    readonly name: string = ''
+  ) {
+    this.source = new JSONSourceReference(node);
   }
 
   *attributeNames(): Iterable<string> {

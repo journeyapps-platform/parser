@@ -33,6 +33,10 @@ export class TextAttribute<
 > extends Attribute<T & { Options: Options }> {
   static TYPE = 'text-attribute';
 
+  static isInstanceOf(attr: Attribute): attr is TextAttribute<TextAttributeGenerics<unknown>> {
+    return attr.type === TextAttribute.TYPE;
+  }
+
   constructor(options: Options) {
     super(TextAttribute.TYPE, {
       ...options,
@@ -46,10 +50,6 @@ export class TextAttribute<
         ]),
       configurable: options.configurable ?? true
     });
-  }
-
-  static isInstanceOf(attr: Attribute): attr is TextAttribute<TextAttributeGenerics<unknown>> {
-    return attr.type === TextAttribute.TYPE;
   }
 
   protected getInput(node?: NodeInput): AttributeInput | undefined {

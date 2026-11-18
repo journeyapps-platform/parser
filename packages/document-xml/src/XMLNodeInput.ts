@@ -11,15 +11,15 @@ export class XMLNodeInput implements NodeInput {
   readonly source: XMLSourceReference;
   readonly kind = NodeInputKind.ELEMENT;
 
+  static parse(text: string): XMLNodeInput {
+    return new XMLNodeInput(new DOMParser().parseFromString(text, 'text/xml').documentElement, text);
+  }
+
   constructor(
     private readonly element: Element,
     private readonly text: string
   ) {
     this.source = new XMLSourceReference(element, text);
-  }
-
-  static parse(text: string): XMLNodeInput {
-    return new XMLNodeInput(new DOMParser().parseFromString(text, 'text/xml').documentElement, text);
   }
 
   get name(): string {

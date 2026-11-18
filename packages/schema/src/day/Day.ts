@@ -3,6 +3,29 @@ import { dateFromTime, isPureDate } from './utils';
 export class Day {
   private _time: Date;
 
+  static today(): Day {
+    return new Day();
+  }
+
+  static fromUTCDate(date: Date): Day {
+    return new Day(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  }
+
+  /**
+   * Recognize Day objects, including instances from other copies of the package.
+   */
+  static isDay(obj: unknown): obj is Day {
+    return (
+      obj instanceof Day ||
+      (obj !== null &&
+        typeof obj === 'object' &&
+        'startOfDay' in obj &&
+        typeof obj.startOfDay === 'function' &&
+        'endOfDay' in obj &&
+        typeof obj.endOfDay === 'function')
+    );
+  }
+
   /**
    * Today in the local timezone.
    */
@@ -39,29 +62,6 @@ export class Day {
     } else {
       throw new Error('Invalid args for Day()');
     }
-  }
-
-  static today(): Day {
-    return new Day();
-  }
-
-  static fromUTCDate(date: Date): Day {
-    return new Day(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-  }
-
-  /**
-   * Recognize Day objects, including instances from other copies of the package.
-   */
-  static isDay(obj: unknown): obj is Day {
-    return (
-      obj instanceof Day ||
-      (obj !== null &&
-        typeof obj === 'object' &&
-        'startOfDay' in obj &&
-        typeof obj.startOfDay === 'function' &&
-        'endOfDay' in obj &&
-        typeof obj.endOfDay === 'function')
-    );
   }
 
   /**
