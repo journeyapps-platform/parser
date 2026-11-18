@@ -23,7 +23,6 @@ export enum WebhookType {
 }
 
 export enum WebhookReceiver {
-  PDFMAILER = 'pdfmailer',
   CLOUDCODE = 'cloudcode'
 }
 

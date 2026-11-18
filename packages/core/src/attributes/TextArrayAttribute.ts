@@ -28,7 +28,9 @@ export class TextArrayAttribute extends TextAttribute<TextArrayAttributeGenerics
   }
 
   normalizeValue(value: unknown): string[] {
-    if (typeof value === 'string') return super.normalizeValue([value]);
+    if (typeof value === 'string') {
+      return super.normalizeValue([value]);
+    }
     return super.normalizeValue(value);
   }
 

@@ -1,11 +1,16 @@
 import { AbstractObjectTypeFactory } from '../schema/TypeFactory';
 import { SchemaModelType } from './SchemaModelType';
 
+export enum RelationshipType {
+  ONE_TO_MANY = 'one-to-many',
+  MANY_TO_MANY = 'many-to-many',
+  ONE_TO_ONE = 'one-to-one'
+}
+
 export class Relationship {
   static readonly TYPE = 'relationship';
 
-  /** one-to-many, many-to-many, one-to-one */
-  type: string;
+  type: RelationshipType;
 
   /** local object type (containing the belongs_to) */
   objectType: SchemaModelType; // TODO
@@ -20,7 +25,7 @@ export class Relationship {
   foreignName: string;
 
   constructor() {
-    this.type = 'one-to-many';
+    this.type = RelationshipType.ONE_TO_MANY;
 
     this.objectType = null;
     this.foreignType = null;

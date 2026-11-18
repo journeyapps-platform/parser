@@ -7,10 +7,6 @@ import { Type } from '@ja-platform/parser-type-system';
 export class Field<T extends Type = Type> {
   static TYPE = 'field';
 
-  static isInstanceOf(obj: any): obj is Field {
-    return obj instanceof Field || 'name' in obj;
-  }
-
   name: string;
   type: T | null;
   label?: string;

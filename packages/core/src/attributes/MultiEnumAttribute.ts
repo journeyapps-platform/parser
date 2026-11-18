@@ -33,7 +33,9 @@ export class MultiEnumAttribute<const T extends string = string> extends Attribu
   }
 
   normalizeValue(value: unknown): T[] {
-    if (typeof value === 'string') return super.normalizeValue([value]);
+    if (typeof value === 'string') {
+      return super.normalizeValue([value]);
+    }
     return super.normalizeValue(value);
   }
 

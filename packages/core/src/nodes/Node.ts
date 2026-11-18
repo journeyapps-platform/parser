@@ -133,7 +133,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     }
   }
 
-  removeAttribute(name: string) {
+  removeAttribute(name: string): this {
     const index = _.findIndex(this.attributes, (item) => {
       return item.name == name;
     });
@@ -197,11 +197,12 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     };
   }
 
-  addAttributes(attrs: Attribute[]) {
+  addAttributes(attrs: Attribute[]): this {
     attrs.forEach((a) => this.addAttribute(a));
+    return this;
   }
 
-  addAttribute(attribute: Attribute): Node<G> {
+  addAttribute(attribute: Attribute): this {
     if (this.attributes.find((x) => x.name === attribute.name)) {
       this.replaceAttribute(attribute);
     } else {
@@ -212,10 +213,10 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     return this;
   }
 
-  replaceAttribute(attribute: Attribute): Node<G> {
+  replaceAttribute(attribute: Attribute): this {
     const index = this.attributes.findIndex((attr) => attr.name === attribute.name);
     if (index === -1) {
-      return;
+      return this;
     }
 
     this.attributes[index] = attribute;
@@ -223,7 +224,7 @@ export class Node<G extends NodeGenerics<any> = NodeGenerics<any>> extends Commo
     return this;
   }
 
-  addNode(node: Node<any>): Node<G> {
+  addNode(node: Node<any>): this {
     this.nodes.push(node);
     node.setParent(this);
     return this;

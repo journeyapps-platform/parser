@@ -122,11 +122,9 @@
 
         <webhook type="ready" receiver="cloudcode" action="helloworld" />
 
-        <webhook type="update" receiver="pdfmailer" action="helloworld" />
-
         <webhook type="update" receiver="cloudcode" action="helloworld" />
 
-        <webhook type="ready" receiver="pdfmailer" action="helloworld" name="overridden_name" />
+        <webhook type="ready" receiver="cloudcode" action="helloworld" name="overridden_name" />
 
     </model>
 

@@ -4,16 +4,18 @@ import { Type } from './Type';
  * An array whose items share a value type.
  */
 export class ArrayType<T = any> extends Type<T[]> {
-  readonly _typeName = 'array';
-  readonly name = 'array';
+  static readonly TYPE = 'array';
+
+  readonly _typeName = ArrayType.TYPE;
+  readonly name = ArrayType.TYPE;
   readonly isCollection = true;
 
   static isInstanceOf(type: Type | null): type is ArrayType {
-    return type?._typeName === 'array';
+    return type?._typeName === ArrayType.TYPE;
   }
 
   constructor(readonly itemType: Type<T>) {
-    super('array');
+    super(ArrayType.TYPE);
   }
 
   is(value: unknown): value is T[] {
@@ -21,8 +23,12 @@ export class ArrayType<T = any> extends Type<T[]> {
   }
 
   parse(value: unknown): T[] {
-    if (this.is(value)) return value;
-    if (!Array.isArray(value)) throw new SyntaxError(`Expected an array of ${this.itemType.name}`);
+    if (this.is(value)) {
+      return value;
+    }
+    if (!Array.isArray(value)) {
+      throw new SyntaxError(`Expected an array of ${this.itemType.name}`);
+    }
     return value.map((item) => this.itemType.parse(item));
   }
 

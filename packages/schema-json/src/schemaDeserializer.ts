@@ -9,7 +9,7 @@ import {
   parseParameterValueProvider,
   SchemaObjectDisplayExpression
 } from '@ja-platform/parser-schema';
-import { ArrayType } from '@ja-platform/parser-type-system';
+import { ArrayType, type Type } from '@ja-platform/parser-type-system';
 import type { FieldJson, serializeSchema } from './schemaSerializer';
 
 /**
@@ -37,12 +37,15 @@ export function deserializeField({
   data: FieldJson;
   name?: string;
 }): Field {
-  const type =
-    data.type === 'query'
-      ? new QueryType(schema.getType(data.object))
-      : data.type === 'array'
-        ? new ArrayType(schema.getType(data.object))
-        : schema.getType(data.type);
+  let type: Type;
+  if (data.type === QueryType.TYPE) {
+    type = new QueryType(schema.getType(data.object));
+  } else if (data.type === ArrayType.TYPE) {
+    type = new ArrayType(schema.getType(data.object));
+  } else {
+    type = schema.getType(data.type);
+  }
+
   const field =
     data.required != null || data.provideValue != null ? schema.param(name, type) : schema.field(name, type);
   if (field instanceof Param) {

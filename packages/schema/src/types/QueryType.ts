@@ -4,16 +4,18 @@ import { Type, ObjectType } from '@ja-platform/parser-type-system';
  * A query whose results share a value type.
  */
 export class QueryType extends Type {
-  readonly _typeName = 'query';
-  readonly name = 'query';
+  static readonly TYPE = 'query';
+
+  readonly _typeName = QueryType.TYPE;
+  readonly name = QueryType.TYPE;
   readonly isCollection = true;
 
   static isInstanceOf(type: Type | null): type is QueryType {
-    return type?._typeName === 'query';
+    return type?._typeName === QueryType.TYPE;
   }
 
   constructor(readonly itemType: Type) {
-    super('query');
+    super(QueryType.TYPE);
   }
 
   is(value: any): boolean {

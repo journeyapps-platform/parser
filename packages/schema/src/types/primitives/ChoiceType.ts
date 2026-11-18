@@ -18,7 +18,9 @@ export function withChoices<TBase extends new (...args: any[]) => Type>(Base: TB
       if (!this.multipleOptions) {
         return this.options[value]?.label ?? '< invalid value >';
       }
-      if (value == null || value.length === 0) return '';
+      if (value == null || value.length === 0) {
+        return '';
+      }
       const values: any[] = Array.prototype.slice.call(value);
       values.sort((a, b) => {
         const left = this.options[a];
@@ -72,13 +74,19 @@ export abstract class ChoiceType extends withChoices(Type) {
   }
 
   parse(value: unknown) {
-    if (this.is(value)) return value;
-    if (this.multipleOptions) throw new SyntaxError('Expected an array of declared choice values');
+    if (this.is(value)) {
+      return value;
+    }
+    if (this.multipleOptions) {
+      throw new SyntaxError('Expected an array of declared choice values');
+    }
     throw new SyntaxError('Expected a declared choice value');
   }
 
   private hasOption(value: unknown): boolean {
-    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') return false;
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+      return false;
+    }
     return this.options[String(value)]?.value === value;
   }
 }

@@ -23,7 +23,7 @@ export const textSubtypeSpecs: { [index: string]: string } = {
   url: 'text.url',
   paragraph: 'text.paragraph',
   'signed-number': 'number',
-  number: 'number', // TODO: fix
+  number: 'number',
   'south-african-id': 'number.za_id',
   'phone-number': 'phone',
   'decimal-number': 'decimal',

@@ -17,10 +17,6 @@ export class Schema {
 
   objects: { [index: string]: SchemaModelType };
 
-  // these are used by the tern defs (legacy editor)
-  apiVersion?;
-  mobileUserType?;
-
   /**
    * Create an empty resolved schema, independently of its input format.
    */

@@ -417,11 +417,10 @@ describe('xml schema parsing (domparser)', () => {
     expect(part).not.toEqual(null); // sanity check
 
     expect(part.webhooks).not.toEqual(null);
-    expect(part.webhooks.length).toEqual(4);
+    expect(part.webhooks.length).toEqual(3);
 
     expect(part.webhooks[0].name).toEqual('cloudcode_part_ready_helloworld');
-    expect(part.webhooks[1].name).toEqual('pdfmailer_part_update_helloworld');
-    expect(part.webhooks[2].name).toEqual('cloudcode_part_update_helloworld');
-    expect(part.webhooks[3].name).toEqual('overridden_name');
+    expect(part.webhooks[1].name).toEqual('cloudcode_part_update_helloworld');
+    expect(part.webhooks[2].name).toEqual('overridden_name');
   });
 });

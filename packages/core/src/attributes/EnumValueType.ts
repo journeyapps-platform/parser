@@ -10,7 +10,9 @@ export class EnumValueType<T extends string> extends Type<T> {
   }
 
   parse(value: unknown): T {
-    if (this.is(value)) return value;
+    if (this.is(value)) {
+      return value;
+    }
     throw new SyntaxError(`Expected one of ${this.options.join(', ')}`);
   }
 }

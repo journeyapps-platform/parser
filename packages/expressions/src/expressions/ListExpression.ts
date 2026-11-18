@@ -47,7 +47,9 @@ export class ListExpressionParser<E extends AbstractExpression> extends Expressi
       parseItem: ({ source, start }) => new EnumToken(source, start),
       createExpression: (options) => {
         const list = new ListExpression<EnumToken>(options);
-        if (!list.isValid()) throw new SyntaxError('Expected a comma-separated list');
+        if (!list.isValid()) {
+          throw new SyntaxError('Expected a comma-separated list');
+        }
         const values = list.items.map((item) => itemType.parse(item.raw()));
         return new ConstantExpression({ ...options, value: valueType.parse(values), valueType });
       }
