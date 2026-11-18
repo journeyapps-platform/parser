@@ -9,20 +9,26 @@ export interface MultiEnumAttributeOptions<T extends string = string> extends At
   options: readonly T[];
 }
 
-export interface MultiEnumAttributeGenerics<T extends string = string> extends AttributeGenerics {
+export interface MultiEnumAttributeGenerics<
+  T extends string = string,
+  Options extends MultiEnumAttributeOptions<T> = MultiEnumAttributeOptions<T>
+> extends AttributeGenerics {
   Value: CombinedMultiEnumExpression<T> | null;
   NormalizedValue: T[];
-  Options: MultiEnumAttributeOptions<T>;
+  Options: Options;
 }
 
-export class MultiEnumAttribute<const T extends string = string> extends Attribute<MultiEnumAttributeGenerics<T>> {
+export class MultiEnumAttribute<
+  T extends string = string,
+  const Options extends MultiEnumAttributeOptions<T> = MultiEnumAttributeOptions<T>
+> extends Attribute<MultiEnumAttributeGenerics<Options['options'][number], Options>> {
   static TYPE = 'list-attribute';
 
   static isInstanceOf(attr: Attribute): attr is MultiEnumAttribute {
     return attr.type === MultiEnumAttribute.TYPE;
   }
 
-  constructor(options: MultiEnumAttributeOptions<T>) {
+  constructor(options: Options) {
     const itemType = new EnumValueType(options.options);
     const valueType = options.valueType ?? new ArrayType(itemType);
     super(
@@ -32,7 +38,7 @@ export class MultiEnumAttribute<const T extends string = string> extends Attribu
     );
   }
 
-  normalizeValue(value: unknown): T[] {
+  normalizeValue(value: unknown) {
     if (typeof value === 'string') {
       return super.normalizeValue([value]);
     }

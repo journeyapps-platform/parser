@@ -8,20 +8,26 @@ export interface EnumAttributeOptions<T extends string = string> extends Attribu
   options: readonly T[];
 }
 
-export interface EnumAttributeGenerics<T extends string = string> extends AttributeGenerics {
+export interface EnumAttributeGenerics<
+  T extends string = string,
+  Options extends EnumAttributeOptions<T> = EnumAttributeOptions<T>
+> extends AttributeGenerics {
   Value: CombinedEnumExpression<T> | null;
   NormalizedValue: T;
-  Options: EnumAttributeOptions<T>;
+  Options: Options;
 }
 
-export class EnumAttribute<const T extends string = string> extends Attribute<EnumAttributeGenerics<T>> {
+export class EnumAttribute<
+  T extends string = string,
+  const Options extends EnumAttributeOptions<T> = EnumAttributeOptions<T>
+> extends Attribute<EnumAttributeGenerics<Options['options'][number], Options>> {
   static TYPE = 'set-attribute';
 
   static isInstanceOf(attr: Attribute): attr is EnumAttribute {
     return attr.type === EnumAttribute.TYPE;
   }
 
-  constructor(options: EnumAttributeOptions<T>) {
+  constructor(options: Options) {
     super(EnumAttribute.TYPE, {
       ...options,
       valueType: options.valueType ?? new EnumValueType(options.options),
