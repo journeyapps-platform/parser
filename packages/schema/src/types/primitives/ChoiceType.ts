@@ -46,8 +46,7 @@ export function withChoices<TBase extends new (...args: any[]) => Type>(Base: TB
     toJSON(): any {
       return {
         ...super.toJSON(),
-        options: Object.keys(this.options).map((key) => {
-          return this.options[key].toJSON();
+        options: this.values(this.options)
         })
       };
     }
