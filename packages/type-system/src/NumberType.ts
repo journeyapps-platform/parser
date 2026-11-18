@@ -25,7 +25,7 @@ export class NumberType extends ScalarType<number> {
     throw new SyntaxError('Expected a finite number.');
   }
   format(value: any, format?: string): string {
-    if (typeof value != 'number') {
+    if (!this.is(value)) {
       return 'NaN';
     }
     if (format == null) {

@@ -4,6 +4,7 @@ import { ObjectType, Type } from '@ja-platform/parser-type-system';
 import { Field } from './Field';
 import { Relationship } from './Relationship';
 import { Schema } from '../schema/Schema';
+import { SchemaError } from '../schema/SchemaError';
 import { ModelIndex } from '../schema/ModelIndex';
 import { PrimitiveType } from './primitives/PrimitiveTypes';
 import { TextType } from './primitives/TextType';
@@ -16,26 +17,53 @@ export interface NotificationConfig {
   badgeCount: string;
 }
 
+export enum WebhookType {
+  READY = 'ready',
+  UPDATE = 'update'
+}
+
+export enum WebhookReceiver {
+  PDFMAILER = 'pdfmailer',
+  CLOUDCODE = 'cloudcode'
+}
+
+export enum WebhookFieldState {
+  PRESENT = 'present',
+  UPLOADED = 'uploaded'
+}
+
+export interface WebhookFieldConfig {
+  name: string;
+  required: boolean;
+  embed: boolean;
+  state: WebhookFieldState;
+}
+
+export interface WebhookConfig {
+  name: string;
+  type: WebhookType;
+  receiver: WebhookReceiver | null;
+  action: string | null;
+  fields: WebhookFieldConfig[];
+}
+
 export class SchemaModelType extends ObjectType {
   static readonly TYPE = 'object';
-
-  readonly isPrimitiveType = false;
-  readonly isObject = true;
-  attributes: Record<string, Field> = {};
 
   static isInstanceOf(type: any): type is SchemaModelType {
     return type?._typeName === SchemaModelType.TYPE;
   }
 
+  attributes: Record<string, Field> = {};
   displayFormat: SchemaObjectDisplayExpression | null;
   label: string;
 
-  belongsTo: { [index: string]: Relationship };
-  hasMany: { [index: string]: Relationship };
+  belongsTo: Record<string, Relationship>;
+  hasMany: Record<string, Relationship>;
 
-  belongsToVars: { [index: string]: Field };
-  belongsToIdVars: { [index: string]: Field };
-  hasManyVars: { [index: string]: Field };
+  belongsToVars: Record<string, Field>;
+  belongsToIdVars: Record<string, Field>;
+  hasManyVars: Record<string, Field>;
   idVar: Field<TextType>;
 
   /**
@@ -46,7 +74,7 @@ export class SchemaModelType extends ObjectType {
    * App indexes.
    */
   indexes: ModelIndex[];
-  webhooks: any[]; // TODO
+  webhooks: WebhookConfig[];
   notifyUsers: NotificationConfig[];
 
   constructor(name?: string) {
@@ -107,9 +135,7 @@ export class SchemaModelType extends ObjectType {
   }
 
   addBelongsTo(options: { schema: Schema; type?: string; foreignName?: string; name: string }) {
-    const object = this;
     const schema = options.schema;
-    let err;
     const rel = schema.newRelationship();
     const typeName = options.type;
     const foreignName = options.foreignName;
@@ -119,35 +145,31 @@ export class SchemaModelType extends ObjectType {
         name = typeName;
       }
       rel.name = name;
-      rel.objectType = object;
+      rel.objectType = this;
       rel.foreignType = schema.objects[typeName];
       if (rel.foreignType == null) {
-        err = new Error("Object '" + typeName + "' is not defined");
-        (err as any).attribute = 'type';
-        throw err;
+        throw new SchemaError(`Object '${typeName}' is not defined`, 'type');
       }
 
-      if (object.belongsTo.hasOwnProperty(name)) {
-        err = new Error("Relationship '" + name + "' is already defined");
-        (err as any).attribute = 'name';
-        throw err;
+      if (this.belongsTo.hasOwnProperty(name)) {
+        throw new SchemaError(`Relationship '${name}' is already defined`, 'name');
       } else {
-        object.belongsTo[name] = rel;
+        this.belongsTo[name] = rel;
 
         // For type lookups
-        object.belongsToVars[name] = schema.field(name, rel.foreignType);
-        object.belongsToVars[name].relationship = name;
+        this.belongsToVars[name] = schema.field(name, rel.foreignType);
+        this.belongsToVars[name].relationship = name;
 
         const idVar = schema.field(name + '_id', PrimitiveType.TEXT);
         idVar.relationship = name;
         idVar.isBelongsToId = true;
-        object.belongsToIdVars[idVar.name] = idVar;
+        this.belongsToIdVars[idVar.name] = idVar;
       }
 
       if (foreignName != null) {
         rel.foreignName = foreignName;
         rel.foreignType.hasMany[foreignName] = rel;
-        rel.foreignType.hasManyVars[foreignName] = schema.field(foreignName, new QueryType(object));
+        rel.foreignType.hasManyVars[foreignName] = schema.field(foreignName, new QueryType(this));
       }
       return rel;
     }

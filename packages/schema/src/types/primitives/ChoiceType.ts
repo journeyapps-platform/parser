@@ -63,4 +63,22 @@ export abstract class ChoiceType extends withChoices(Type) {
     super(name);
     this.multipleOptions = config?.multiple ?? false;
   }
+
+  is(value: unknown): boolean {
+    if (this.multipleOptions) {
+      return Array.isArray(value) && value.every((item) => this.hasOption(item));
+    }
+    return this.hasOption(value);
+  }
+
+  parse(value: unknown) {
+    if (this.is(value)) return value;
+    if (this.multipleOptions) throw new SyntaxError('Expected an array of declared choice values');
+    throw new SyntaxError('Expected a declared choice value');
+  }
+
+  private hasOption(value: unknown): boolean {
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') return false;
+    return this.options[String(value)]?.value === value;
+  }
 }

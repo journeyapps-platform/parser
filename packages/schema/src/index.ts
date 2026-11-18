@@ -1,4 +1,5 @@
 export * from './schema/Schema';
+export * from './schema/SchemaError';
 
 export * from './schema/TypeFactory';
 
