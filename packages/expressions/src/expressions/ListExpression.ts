@@ -1,4 +1,7 @@
 import { ExpressionParser } from '../ExpressionParser';
+import type { Type } from '@ja-platform/parser-type-system';
+import { EnumToken } from '../tokens/EnumToken';
+import { ConstantExpression } from './constant/ConstantExpression';
 import { AbstractToken, ExpressionSource } from '../tokens/AbstractToken';
 import { DelimiterToken } from '../tokens/DelimiterToken';
 import { AbstractExpression, AbstractExpressionOptions } from './AbstractExpression';
@@ -6,7 +9,11 @@ import { AbstractExpression, AbstractExpressionOptions } from './AbstractExpress
 /**
  * A comma-separated list retaining item tokens, separators and whitespace.
  */
-export abstract class ListExpression<T extends AbstractToken> extends AbstractExpression {
+export class ListExpression<T extends AbstractToken> extends AbstractExpression {
+  constructor(options: AbstractExpressionOptions, type = 'list-expression') {
+    super(type, options);
+  }
+
   protected isDelimiter(token: AbstractToken): token is DelimiterToken {
     return token instanceof DelimiterToken;
   }
@@ -26,7 +33,7 @@ export abstract class ListExpression<T extends AbstractToken> extends AbstractEx
   }
 }
 
-export interface ListExpressionParserOptions<E extends ListExpression<AbstractToken>> {
+export interface ListExpressionParserOptions<E extends AbstractExpression> {
   parseItem: (input: { source: string; start: number }) => AbstractToken;
   createExpression: (options: AbstractExpressionOptions) => E;
 }
@@ -34,7 +41,19 @@ export interface ListExpressionParserOptions<E extends ListExpression<AbstractTo
 /**
  * Parses list structure while delegating item syntax to the owning expression.
  */
-export class ListExpressionParser<E extends ListExpression<AbstractToken>> extends ExpressionParser<E> {
+export class ListExpressionParser<E extends AbstractExpression> extends ExpressionParser<E> {
+  static enumConstants<T extends string>(itemType: Type<T>, valueType: Type<T[]>) {
+    return new ListExpressionParser({
+      parseItem: ({ source, start }) => new EnumToken(source, start),
+      createExpression: (options) => {
+        const list = new ListExpression<EnumToken>(options);
+        if (!list.isValid()) throw new SyntaxError('Expected a comma-separated list');
+        const values = list.items.map((item) => itemType.parse(item.raw()));
+        return new ConstantExpression({ ...options, value: valueType.parse(values), valueType });
+      }
+    });
+  }
+
   constructor(readonly options: ListExpressionParserOptions<E>) {
     super();
   }

@@ -9,7 +9,7 @@ import {
 
 class IdentifierList extends ListExpression<IdentifierToken> {
   constructor(options: AbstractExpressionOptions) {
-    super('identifier-list', options);
+    super(options, 'identifier-list');
   }
 
   isValid(): boolean {

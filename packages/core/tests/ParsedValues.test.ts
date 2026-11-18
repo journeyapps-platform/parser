@@ -119,18 +119,18 @@ describe('Parsed values', () => {
     expect(() => attribute.normalizeValue('present')).toThrow(SyntaxError);
   });
 
-  it('keeps text arrays as arrays and uses their configured delimiter', () => {
+  it('wraps a returned string as one text item and preserves a returned array', () => {
     const definition = new Node({ name: 'item' });
-    definition.addAttribute(new TextArrayAttribute({ name: 'tags', delimiter: ';' }));
+    definition.addAttribute(new TextArrayAttribute({ name: 'tags' }));
     const node = definition.parseTree({
-      ...xmlInput('<item tags="first;second" />'),
+      ...xmlInput('<item tags="$:getTags()" />'),
       scope: {} as ParseEvent['scope'],
       report: () => {}
     });
     const attribute = node.attribute('tags');
-    const provider = new MutableProvider('first;second');
+    const provider = new MutableProvider('first,second');
     const value = new ParsedValue<string[]>(attribute, [provider]);
-    expect(value.current).toEqual(['first', 'second']);
+    expect(value.current).toEqual(['first,second']);
     const tags = ['third', 'fourth'];
     provider.values.get(attribute).setValue(tags);
     expect(value.current).toBe(tags);

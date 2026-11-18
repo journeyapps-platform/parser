@@ -8,7 +8,7 @@ import { IndexDatabase } from '@ja-platform/parser-schema';
 
 export class SchemaDatabasesExpression extends ListExpression<IdentifierToken> {
   constructor(options: AbstractExpressionOptions) {
-    super('schema-databases', options);
+    super(options, 'schema-databases');
   }
 
   isValid(): boolean {

@@ -80,7 +80,7 @@ export class Attribute<G extends AttributeGenerics = AttributeGenerics> extends 
   parent: Node<any>;
   type: string;
 
-  constructor(type: string, options: G['Options']) {
+  constructor(type: string, options: G['Options'], literalParser?: ExpressionParser<CombinedAttributeExpression>) {
     super({
       ...options,
       syntax:
@@ -88,7 +88,7 @@ export class Attribute<G extends AttributeGenerics = AttributeGenerics> extends 
         new CombinedParser<CombinedAttributeExpression>([
           new FunctionExpressionParser(),
           new EvaluatedExpressionParser(),
-          new ConstantExpressionParser(options.valueType ?? textType)
+          literalParser ?? new ConstantExpressionParser(options.valueType ?? textType)
         ]),
       autoWatch: options.autoWatch ?? true,
       configurable: options.configurable ?? false,

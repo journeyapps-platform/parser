@@ -7,7 +7,7 @@ import { SchemaIndexKeyToken } from '../tokens/SchemaIndexKeyToken';
  */
 export class SchemaIndexExpression extends ListExpression<SchemaIndexKeyToken> {
   constructor(options: AbstractExpressionOptions) {
-    super('schema-index', options);
+    super(options, 'schema-index');
   }
 
   isValid(): boolean {

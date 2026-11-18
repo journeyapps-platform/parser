@@ -3,7 +3,7 @@ import { webdriverio } from '@vitest/browser-webdriverio';
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['@ja-platform/parser-schema', '@ja-platform/parser-type-system', '@ja-platform/parser-expressions']
+    include: ['@ja-platform/parser-schema', '@ja-platform/parser-type-system']
   },
   test: {
     globals: true,

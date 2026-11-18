@@ -20,7 +20,7 @@ import {
   NodeAlternatives,
   NumberAttribute,
   TextAttribute,
-  SetAttribute,
+  EnumAttribute,
   TextArrayAttribute
 } from '../src';
 
@@ -60,9 +60,9 @@ describe('Shared XML parsing', () => {
     { attribute: new BooleanAttribute({ name: 'value', defaultValue: true }), expected: true },
     { attribute: new TextAttribute({ name: 'value', defaultValue: '' }), expected: '' },
     { attribute: new TextAttribute({ name: 'value', defaultValue: 'hello' }), expected: 'hello' },
-    { attribute: new SetAttribute({ name: 'value', options: ['', 'one'], defaultValue: '' }), expected: '' },
+    { attribute: new EnumAttribute({ name: 'value', options: ['', 'one'], defaultValue: '' }), expected: '' },
     {
-      attribute: new SetAttribute({ name: 'value', options: ['one'], defaultValue: 'one' }),
+      attribute: new EnumAttribute({ name: 'value', options: ['one'], defaultValue: 'one' }),
       expected: 'one'
     },
     { attribute: new TextArrayAttribute({ name: 'value', defaultValue: [] }), expected: [] },
