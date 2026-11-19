@@ -1,6 +1,6 @@
 {
   "name": "@ja-platform/parser-document-xml",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "XML document inputs for parser definitions",
   "main": "./dist/index.js",
   "types": "./dist/@types/index.d.ts",
