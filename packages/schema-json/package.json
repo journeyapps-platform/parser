@@ -3,7 +3,7 @@
   "engines": {
     "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "JourneyApps Platform schema JSON serialization and deserialization",
   "main": "./dist/index.js",
   "typings": "./dist/@types/index.d.ts",
